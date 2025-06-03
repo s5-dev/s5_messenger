@@ -1,0 +1,19 @@
+name: s5_messenger
+description: A plug & play messaging library utilizing S5 / MLS
+version: 0.1.0
+repository: https://github.com/s5-dev/s5_messenger
+environment:
+  sdk: ^3.8.1
+
+# Add regular dependencies here.
+dependencies:
+  lib5: ^0.2.0
+  ntp: ^2.0.0
+  s5: ^0.2.0
+  flutter_rust_bridge: 2.10.0
+  hive: any
+dev_dependencies:
+  integration_test:
+    sdk: flutter
+  lints: ^5.0.0
+  test: ^1.24.0
