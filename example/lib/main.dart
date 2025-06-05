@@ -1,32 +1,9 @@
-// import 'package:flutter/material.dart';
-// import 'package:s5_messenger/s5_messenger.dart';
-//
-// Future<void> main() async {
-//   await RustLib.init();
-//   runApp(const MyApp());
-// }
-//
-// class MyApp extends StatelessWidget {
-//   const MyApp({super.key});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       home: Scaffold(
-//         appBar: AppBar(title: const Text('flutter_rust_bridge quickstart')),
-//         body: Center(
-//           child: Text(
-//               'Action: Call Rust `greet("Tom")`\nResult: `${greet(name: "Tom")}`'),
-//         ),
-//       ),
-//     );
-//   }
-// }
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:s5/s5.dart';
 import 'package:s5_messenger/s5_messenger.dart';
 import 'package:lib5/util.dart';
+import 'package:s5_messenger_example/view/demo_main_view.dart';
 
 late S5 s5;
 late S5Messenger s5messenger;
@@ -92,6 +69,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
 
       // Initialize S5Messenger
       s5messenger = S5Messenger();
+      await s5messenger.init(s5);
       // await s5messenger.init(s5);
       setState(() => messengerInitialized = true);
 
@@ -101,7 +79,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
       // Navigate to home page
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const MyHomePage()),
+          MaterialPageRoute(builder: (context) => const MLS5DemoAppView()),
         );
       }
     } catch (e) {

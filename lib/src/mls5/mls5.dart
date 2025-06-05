@@ -307,12 +307,16 @@ class GroupState {
 
   void loadMoreMessages() {
     final anchorLow = String.fromCharCodes(base64UrlNoPaddingDecode(groupId));
-    final anchorHigh = messagesMemory.isEmpty
-        ? String.fromCharCodes(base64UrlNoPaddingDecode(groupId) + [255])
-        : makeKey(messagesMemory.last);
-    final keys = mls.messageStoreBox.keys
-        .where((k) => k.compareTo(anchorLow) > 0 && k.compareTo(anchorHigh) < 0)
-        .toList();
+    final anchorHigh =
+        messagesMemory.isEmpty
+            ? String.fromCharCodes(base64UrlNoPaddingDecode(groupId) + [255])
+            : makeKey(messagesMemory.last);
+    final keys =
+        mls.messageStoreBox.keys
+            .where(
+              (k) => k.compareTo(anchorLow) > 0 && k.compareTo(anchorHigh) < 0,
+            )
+            .toList();
     keys.sort((a, b) => b.compareTo(a));
     // print(keys);
 
@@ -422,9 +426,10 @@ class GroupState {
     final msg = await SignedStreamMessage.create(
       kp: channel,
       data: message,
-      ts: DateTime.now()
-          .add(mls.timeOffset)
-          .millisecondsSinceEpoch, // TODO Maybe use microseconds or seq numbers  to further avoid collisions on the s5 streams transport layer
+      ts:
+          DateTime.now()
+              .add(mls.timeOffset)
+              .millisecondsSinceEpoch, // TODO Maybe use microseconds or seq numbers  to further avoid collisions on the s5 streams transport layer
       crypto: mls.crypto,
     );
 

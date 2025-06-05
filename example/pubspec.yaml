@@ -46,6 +46,7 @@ dependencies:
   hive: ^2.2.3
   s5: ^0.2.0
   logger: ^2.5.0
+  adaptive_dialog: ^2.4.1
 
 dev_dependencies:
   flutter_test:
