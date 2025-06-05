@@ -31,16 +31,6 @@ See [example](./example/)
 3. **Flutter Interface**: Platform-agnostic UI components
 4. **Rust Core**: High-performance cryptographic operations
 
-## Platform Support ✔
-
-| Platform | Status |
-|----------|--------|
-| Android  | ✅     |
-| iOS      | ✅     |
-| Linux    | ✅     |
-| macOS    | ✅     |
-| Windows  | ✅     |
-
 ## Contributing 🤝
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup using:
