@@ -1,92 +1,53 @@
+
 # s5_messenger
 
-A new Flutter FFI plugin project.
+A **Flutter package** for secure messaging using [s5](https://s5.pro/) and [MLS](https://www.ietf.org/blog/mls-secure-and-usable-end-to-end-encryption/) (Messaging Layer Security) protocols. Enables easy-to-set-up, end-to-end encrypted messaging between clients.
 
-## Getting Started
+## Features ✨
 
-This project is a starting point for a Flutter
-[FFI plugin](https://flutter.dev/to/ffi-package),
-a specialized package that includes native code directly invoked with Dart FFI.
+- **End-to-end encryption** via MLS protocol
+- **Decentralized storage** using S5 for message transportation
+- **Cross-platform** support (Android, iOS, Linux, macOS, Windows)
+- **Rust-powered** core via ```flutter_rust_bridge``` for performance
+- **Minimal-config** messaging between authenticated clients
 
-## Project structure
+## Installation 📦
 
-This template uses the following structure:
-
-* `src`: Contains the native source code, and a CmakeFile.txt file for building
-  that source code into a dynamic library.
-
-* `lib`: Contains the Dart code that defines the API of the plugin, and which
-  calls into the native code using `dart:ffi`.
-
-* platform folders (`android`, `ios`, `windows`, etc.): Contains the build files
-  for building and bundling the native code library with the platform application.
-
-## Building and bundling native code
-
-The `pubspec.yaml` specifies FFI plugins as follows:
+Add to your ```pubspec.yaml```:
 
 ```yaml
-  plugin:
-    platforms:
-      some_platform:
-        ffiPlugin: true
+dependencies:
+  s5_messenger: ^0.1.0
 ```
 
-This configuration invokes the native build for the various target platforms
-and bundles the binaries in Flutter applications using these FFI plugins.
+## Basic Usage 🚀
 
-This can be combined with dartPluginClass, such as when FFI is used for the
-implementation of one platform in a federated plugin:
+See [example](./example/)
 
-```yaml
-  plugin:
-    implements: some_other_plugin
-    platforms:
-      some_platform:
-        dartPluginClass: SomeClass
-        ffiPlugin: true
-```
+## Architecture 🏗
 
-A plugin can have both FFI and method channels:
+1. **MLS Protocol**: Handles key management and message encryption
+2. **S5 Integration**: Stores encrypted messages in a decentralized network
+3. **Flutter Interface**: Platform-agnostic UI components
+4. **Rust Core**: High-performance cryptographic operations
 
-```yaml
-  plugin:
-    platforms:
-      some_platform:
-        pluginClass: SomeName
-        ffiPlugin: true
-```
+## Platform Support ✔
 
-The native build systems that are invoked by FFI (and method channel) plugins are:
+| Platform | Status |
+|----------|--------|
+| Android  | ✅     |
+| iOS      | ✅     |
+| Linux    | ✅     |
+| macOS    | ✅     |
+| Windows  | ✅     |
 
-* For Android: Gradle, which invokes the Android NDK for native builds.
-  * See the documentation in android/build.gradle.
-* For iOS and MacOS: Xcode, via CocoaPods.
-  * See the documentation in ios/s5_messenger.podspec.
-  * See the documentation in macos/s5_messenger.podspec.
-* For Linux and Windows: CMake.
-  * See the documentation in linux/CMakeLists.txt.
-  * See the documentation in windows/CMakeLists.txt.
+## Contributing 🤝
 
-## Binding to native code
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup using:
 
-To use the native code, bindings in Dart are needed.
-To avoid writing these by hand, they are generated from the header file
-(`src/s5_messenger.h`) by `package:ffigen`.
-Regenerate the bindings by running `dart run ffigen --config ffigen.yaml`.
+- ```flutter_rust_bridge``` for FFI
+- ```cargokit``` for Rust-Flutter integration
 
-## Invoking native code
+## License 📄
 
-Very short-running native functions can be directly invoked from any isolate.
-For example, see `sum` in `lib/s5_messenger.dart`.
-
-Longer-running functions should be invoked on a helper isolate to avoid
-dropping frames in Flutter applications.
-For example, see `sumAsync` in `lib/s5_messenger.dart`.
-
-## Flutter help
-
-For help getting started with Flutter, view our
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-
+MIT (See [LICENSE](LICENSE))
