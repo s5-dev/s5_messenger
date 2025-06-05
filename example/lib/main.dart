@@ -1,12 +1,40 @@
+// import 'package:flutter/material.dart';
+// import 'package:s5_messenger/s5_messenger.dart';
+//
+// Future<void> main() async {
+//   await RustLib.init();
+//   runApp(const MyApp());
+// }
+//
+// class MyApp extends StatelessWidget {
+//   const MyApp({super.key});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       home: Scaffold(
+//         appBar: AppBar(title: const Text('flutter_rust_bridge quickstart')),
+//         body: Center(
+//           child: Text(
+//               'Action: Call Rust `greet("Tom")`\nResult: `${greet(name: "Tom")}`'),
+//         ),
+//       ),
+//     );
+//   }
+// }
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:s5/s5.dart';
 import 'package:s5_messenger/s5_messenger.dart';
+import 'package:lib5/util.dart';
 
 late S5 s5;
 late S5Messenger s5messenger;
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Initialize Rust
+  await RustLib.init();
   runApp(const MyApp());
 }
 
@@ -49,7 +77,6 @@ class _InitializationScreenState extends State<InitializationScreen> {
       // Initialize Hive
       Hive.init('data');
       setState(() => hiveInitialized = true);
-      // Initialize Rust
 
       // Initialize S5
       s5 = await S5.create(
@@ -59,12 +86,13 @@ class _InitializationScreenState extends State<InitializationScreen> {
           'wss://z2DdbxV4xyoqWck5pXXJdVzRnwQC6Gbv6o7xDvyZvzKUfuj@s5.vup.dev/s5/p2p',
           'wss://z2DWuWNZcdSyZLpXFK2uCU3haaWMXrDAgxzv17sDEMHstZb@s5.garden/s5/p2p',
         ],
+        logger: SilentLogger(),
       );
       setState(() => s5Initialized = true);
 
       // Initialize S5Messenger
       s5messenger = S5Messenger();
-      await s5messenger.init(s5);
+      // await s5messenger.init(s5);
       setState(() => messengerInitialized = true);
 
       // All done
@@ -136,10 +164,48 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Awesome aws = Awesome();
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text("${aws.isAwesome}")));
+    return Scaffold(body: Center(child: Text("App has initialized")));
+  }
+}
+
+// Quick change of: https://github.com/s5-dev/lib5/blob/main/lib/src/node/logger/simple.dart
+// Supresses spammy warns
+class SilentLogger extends Logger {
+  final String prefix;
+  final bool format;
+  final bool showVerbose;
+
+  SilentLogger({
+    this.prefix = '',
+    this.format = true,
+    this.showVerbose = false,
+  });
+
+  @override
+  void info(String s) {
+    print(prefix + s.replaceAll(RegExp('\u001b\\[\\d+m'), ''));
+  }
+
+  @override
+  void error(String s) {
+    print('$prefix[ERROR] $s');
+  }
+
+  @override
+  void verbose(String s) {
+    if (!showVerbose) return;
+    print(prefix + s);
+  }
+
+  @override
+  void warn(String s) {
+    // Silent - no output
+  }
+
+  @override
+  void catched(e, st, [context]) {
+    // Silent - no output
   }
 }

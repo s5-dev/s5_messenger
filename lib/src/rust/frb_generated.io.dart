@@ -19,44 +19,43 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   });
 
   CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_CiphersuitePtr => wire
-      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCiphersuitePtr;
+  get rust_arc_decrement_strong_count_CiphersuitePtr =>
+      wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCiphersuitePtr;
 
   CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_CredentialTypePtr => wire
-      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCredentialTypePtr;
+  get rust_arc_decrement_strong_count_CredentialTypePtr =>
+      wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCredentialTypePtr;
 
   CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_CredentialWithKeyPtr => wire
-      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCredentialWithKeyPtr;
+  get rust_arc_decrement_strong_count_CredentialWithKeyPtr =>
+      wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCredentialWithKeyPtr;
 
   CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_MlsCredentialPtr => wire
-      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMLSCredentialPtr;
+  get rust_arc_decrement_strong_count_MlsCredentialPtr =>
+      wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMLSCredentialPtr;
 
   CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_MlsGroupCreateConfigPtr => wire
-      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupCreateConfigPtr;
+  get rust_arc_decrement_strong_count_MlsGroupCreateConfigPtr =>
+      wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupCreateConfigPtr;
 
   CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_MyOpenMlsRustCryptoPtr => wire
-      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyOpenMlsRustCryptoPtr;
+  get rust_arc_decrement_strong_count_MyOpenMlsRustCryptoPtr =>
+      wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyOpenMlsRustCryptoPtr;
 
   CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_OpenMlsConfigPtr => wire
-      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOpenMLSConfigPtr;
+  get rust_arc_decrement_strong_count_OpenMlsConfigPtr =>
+      wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOpenMLSConfigPtr;
+
+  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_MlsGroupPtr =>
+      wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockMlsGroupPtr;
 
   CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_MlsGroupPtr => wire
-      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockMlsGroupPtr;
+  get rust_arc_decrement_strong_count_SignatureKeyPairPtr =>
+      wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureKeyPairPtr;
 
   CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_SignatureKeyPairPtr => wire
-      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureKeyPairPtr;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_SignatureSchemePtr => wire
-      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureSchemePtr;
+  get rust_arc_decrement_strong_count_SignatureSchemePtr =>
+      wire._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureSchemePtr;
 
   @protected
   Ciphersuite
@@ -225,6 +224,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureScheme(
     dynamic raw,
   );
+
+  @protected
+  String dco_decode_String(dynamic raw);
 
   @protected
   bool dco_decode_bool(dynamic raw);
@@ -433,6 +435,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureScheme(
     SseDeserializer deserializer,
   );
+
+  @protected
+  String sse_decode_String(SseDeserializer deserializer);
 
   @protected
   bool sse_decode_bool(SseDeserializer deserializer);
@@ -672,6 +677,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     SignatureScheme self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
   void sse_encode_bool(bool self, SseSerializer serializer);

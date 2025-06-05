@@ -1,6 +1,6 @@
-# example
+# s5_messenger_example
 
-A new Flutter project.
+Demonstrates how to use the s5_messenger plugin.
 
 ## Getting Started
 

@@ -497,7 +497,7 @@
       "name": "s5_messenger",
       "rootUri": "../",
       "packageUri": "lib/",
-      "languageVersion": "3.8"
+      "languageVersion": "3.7"
     }
   ],
   "generator": "pub",

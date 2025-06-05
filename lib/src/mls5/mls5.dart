@@ -43,7 +43,6 @@ class S5Messenger {
     s5 = inputS5;
     dataBox = await Hive.openBox('vup-chat-data');
     groupsBox = await Hive.openBox('vup-chat-groups');
-
     final databaseEncryptionKey = Uint8List(32);
 
     messageStoreBox = await Hive.openBox(
@@ -67,7 +66,6 @@ class S5Messenger {
 
     await setupIdentity();
 
-    // TODO This is to ensure enough s5 peers are connected (can be removed in the future)
     Future.delayed(Duration(seconds: 1)).then((value) async {
       await recoverGroups();
       mainWindowState.update();

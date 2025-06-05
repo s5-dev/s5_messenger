@@ -7,9 +7,16 @@ use openmls_rust_crypto::RustCrypto;
 pub use std::borrow::Borrow;
 use std::io::Cursor;
 pub use std::sync::RwLock;
+use std::sync::Arc;
+
+#[flutter_rust_bridge::frb(sync)] // Synchronous mode for simplicity of the demo
+pub fn greet(name: String) -> String {
+    format!("Hello, {name}!")
+}
 
 #[flutter_rust_bridge::frb(init)]
 pub fn init_app() {
+    // Default utilities - feel free to customize
     flutter_rust_bridge::setup_default_user_utils();
 }
 
@@ -60,7 +67,7 @@ pub fn openmls_init_config(keystore_dump: Vec<u8>) -> OpenMLSConfig {
         println!("[keystore] load existing");
         let mut cursor = Cursor::new(keystore_dump);
         MyOpenMlsRustCrypto {
-            crypto: RustCrypto::default(),
+            crypto: RustCrypto::default().into(),
             key_store: MemoryStorage::deserialize(&mut cursor).unwrap(),
         }
     } else {
@@ -77,10 +84,10 @@ pub fn openmls_init_config(keystore_dump: Vec<u8>) -> OpenMLSConfig {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 #[frb(opaque)]
 pub struct MyOpenMlsRustCrypto {
-    crypto: RustCrypto,
+    crypto: Arc<RustCrypto>,
     key_store: MemoryStorage,
 }
 
@@ -105,7 +112,7 @@ impl OpenMlsProvider for MyOpenMlsRustCrypto {
 
 pub fn openmls_keystore_dump(config: &OpenMLSConfig) -> Vec<u8> {
     let mut bytes = vec![];
-    config.backend.storage().serialize(&mut bytes);
+    let _ = config.backend.storage().serialize(&mut bytes);
     bytes
 }
 
@@ -425,10 +432,10 @@ pub enum PostUpdateActions {
     Remove,
 } */
 
-pub fn openmls_group_save(group: &RwLock<MlsGroup>, config: &OpenMLSConfig) -> Vec<u8> {
+pub fn openmls_group_save(group: &RwLock<MlsGroup>, _config: &OpenMLSConfig) -> Vec<u8> {
     // let mut group_rw = group.write().unwrap();
 
-    let mut group_rw = match group.write() {
+    let group_rw = match group.write() {
         Ok(guard) => guard,
         Err(poisoned) => poisoned.into_inner(),
     };
@@ -604,3 +611,4 @@ impl OpenMlsCryptoProvider for MyOpenMlsRustCrypto {
     }
 }
  */
+
