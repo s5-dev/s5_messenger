@@ -41,3 +41,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup using:
 ## License 📄
 
 MIT (See [LICENSE](LICENSE))
+
+## Acknowledgement
+
+This work is supported by a [Sia Foundation](https://sia.tech/) grant

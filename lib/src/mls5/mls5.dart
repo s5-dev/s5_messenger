@@ -8,7 +8,7 @@ import 'package:lib5/util.dart';
 import 'package:ntp/ntp.dart';
 import 'package:s5/s5.dart';
 import 'package:s5/src/hive_key_value_db.dart';
-import 'package:s5_messenger/src/mls5/state/main_window.dart';
+import 'package:s5_messenger/src/mls5/state/messenger.dart';
 import 'package:s5_messenger/src/rust/api/simple.dart';
 import 'package:s5_messenger/src/rust/frb_generated.dart';
 import 'package:hive/hive.dart';
@@ -21,7 +21,7 @@ import '../mls5/model/message.dart';
 /// Main class for MLS (Messaging Layer Security) functionality in the S5 messenger.
 /// Handles group creation, message encryption/decryption, and member management.
 class S5Messenger {
-  final mainWindowState = MainWindowState();
+  final messengerState = MessengerState();
 
   late final Box dataBox;
   late final Box groupsBox;
@@ -68,7 +68,7 @@ class S5Messenger {
 
     Future.delayed(Duration(seconds: 1)).then((value) async {
       await recoverGroups();
-      mainWindowState.update();
+      messengerState.update();
     });
 
     _setupTimeSync();
@@ -442,7 +442,7 @@ class GroupState {
     final Map map = mls.groupsBox.get(groupId);
     map['name'] = newName;
     mls.groupsBox.put(groupId, map);
-    mls.mainWindowState.update();
+    mls.messengerState.update();
   }
 
   /*   final ignoreMessageIds = <String, Set<int>>{};

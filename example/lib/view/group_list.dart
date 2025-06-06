@@ -19,8 +19,8 @@ class _GroupListViewState extends State<GroupListView> {
         for (final group in s5messenger.groupsBox.values)
           ListTile(
             onTap: () {
-              s5messenger.mainWindowState.groupId = group['id'];
-              s5messenger.mainWindowState.update();
+              s5messenger.messengerState.groupId = group['id'];
+              s5messenger.messengerState.update();
             },
             onLongPress: () async {
               final res = await showTextInputDialog(
@@ -35,7 +35,7 @@ class _GroupListViewState extends State<GroupListView> {
             title: Text(group['name']),
             subtitle: Text(group['id']),
             enabled: s5messenger.groups.isNotEmpty,
-            selected: s5messenger.mainWindowState.groupId == group['id'],
+            selected: s5messenger.messengerState.groupId == group['id'],
             selectedTileColor: Theme.of(context).colorScheme.primaryContainer,
           ),
         Padding(
@@ -59,8 +59,8 @@ class _GroupListViewState extends State<GroupListView> {
                       welcome.substring(18),
                     ),
                   );
-                  s5messenger.mainWindowState.groupId = groupId;
-                  s5messenger.mainWindowState.update();
+                  s5messenger.messengerState.groupId = groupId;
+                  s5messenger.messengerState.update();
                 },
                 child: Text(
                   'Join Group',

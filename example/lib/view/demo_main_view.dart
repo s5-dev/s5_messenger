@@ -16,7 +16,7 @@ class MLS5DemoAppView extends StatelessWidget {
           'Vup Chat - Decentralized E2EE group chats with MLS and the S5 Network',
         )),
         body: StreamBuilder<void>(
-            stream: s5messenger.mainWindowState.stream,
+            stream: s5messenger.messengerState.stream,
             builder: (context, snapshot) {
               return Row(
                 children: [
@@ -24,13 +24,13 @@ class MLS5DemoAppView extends StatelessWidget {
                     width: 256,
                     child: GroupListView(),
                   ),
-                  if (s5messenger.mainWindowState.groupId != null) ...[
+                  if (s5messenger.messengerState.groupId != null) ...[
                     VerticalDivider(
                       width: 1,
                     ),
                     Expanded(
                       child: GroupChatView(
-                        s5messenger.mainWindowState.groupId!,
+                        s5messenger.messengerState.groupId!,
                       ),
                     )
                   ]

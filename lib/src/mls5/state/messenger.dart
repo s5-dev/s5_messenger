@@ -1,5 +1,5 @@
 import '../util/state.dart';
 
-class MainWindowState extends StateNotifier {
+class MessengerState extends StateNotifier {
   String? groupId;
 }

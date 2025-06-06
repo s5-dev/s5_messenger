@@ -34,14 +34,14 @@ class MLSApplicationMessage {
     ProcessIncomingMessageResponse res,
     int ts,
   ) {
-    if (res.applicationMessage[0] != mlsApplicationMessagePrefixVupChat) {
+    if (res.applicationMessage[0] != mlsApplicationMessagePrefixS5Messenger) {
       throw 'Unsupported application message prefix ${res.applicationMessage[0]}';
     }
     final Message msg;
-    if (res.applicationMessage[1] == vupChatTextMessageJSON) {
+    if (res.applicationMessage[1] == s5MessengerTextMessageJSON) {
       msg = TextMessage.deserialize(res.applicationMessage.sublist(2));
     } else {
-      throw 'Unsupported vup chat message type prefix ${res.applicationMessage[1]}';
+      throw 'Unsupported s5 messenger message type prefix ${res.applicationMessage[1]}';
     }
     return MLSApplicationMessage(
       msg: msg,
@@ -77,19 +77,28 @@ abstract class Message {
 
 class TextMessage extends Message {
   @override
-  final prefix = [mlsApplicationMessagePrefixVupChat, vupChatTextMessageJSON];
+  final prefix = [
+    mlsApplicationMessagePrefixS5Messenger,
+    s5MessengerTextMessageJSON,
+  ];
 
   final String text;
   final int ts; // when this post was created, in milliseconds?
+  final Uint8List? embed; // flexible embed you can put msgpack into
 
-  TextMessage({required this.text, required this.ts});
+  TextMessage({required this.text, required this.ts, this.embed});
 
   @override
-  Uint8List serialize() => utf8.encode(jsonEncode({'text': text, 'ts': ts}));
+  Uint8List serialize() =>
+      utf8.encode(jsonEncode({'text': text, 'ts': ts, 'embed': embed}));
 
   static Message deserialize(Uint8List data) {
     final body = jsonDecode(utf8.decode(data));
-
-    return TextMessage(text: body['text'], ts: body['ts']);
+    final dynamic embedData = body['embed'];
+    final Uint8List? embed =
+        embedData != null
+            ? Uint8List.fromList(List<int>.from(embedData))
+            : null;
+    return TextMessage(text: body['text'], ts: body['ts'], embed: embed);
   }
 }
