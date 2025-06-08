@@ -106,14 +106,17 @@ class _GroupChatViewState extends State<GroupChatView> {
                         final res = await showTextInputDialog(
                           context: context,
                           textFields: [
-                            DialogTextField(hintText: 's5messenger-key-package:')
+                            DialogTextField(
+                                hintText: 's5-messenger-key-package:')
                           ],
                         );
                         if (res == null) return;
                         final String kp = res.first;
-                        if (!kp.startsWith('s5messenger-key-package:')) throw 'TODO1';
+                        logger.info(kp);
+                        if (!kp.startsWith('s5-messenger-key-package:'))
+                          throw 'TODO1';
                         final bytes = base64UrlNoPaddingDecode(
-                          kp.substring(17),
+                          kp.substring(25),
                         );
                         print(bytes);
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:s5/s5.dart';
 import 'package:s5_messenger/s5_messenger.dart';
 import 'package:lib5/util.dart';
@@ -7,6 +8,7 @@ import 'package:s5_messenger_example/view/demo_main_view.dart';
 
 late S5 s5;
 late S5Messenger s5messenger;
+Logger logger = SimpleLogger(prefix: '[s5_messenger]');
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,8 +53,10 @@ class _InitializationScreenState extends State<InitializationScreen> {
 
   Future<void> _initializeDependencies() async {
     try {
+      final dir =
+          await getApplicationDocumentsDirectory(); // Best for persistent data
+      Hive.init(dir.path);
       // Initialize Hive
-      Hive.init('data');
       setState(() => hiveInitialized = true);
 
       // Initialize S5

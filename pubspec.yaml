@@ -1,8 +1,8 @@
 publish_to: none
 name: s5_messenger
-description: "A new Flutter FFI plugin project."
-version: 0.0.1
-homepage:
+description: "Drop in performant messaging library based on MLS & S5"
+version: 0.1.0
+homepage: https://github.com/s5-dev/s5_messenger
 
 environment:
   sdk: ^3.6.2
@@ -11,7 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_rust_bridge: 2.10.0
+  flutter_rust_bridge: ^2.10.0
   hive: ^2.2.3
   lib5: ^0.2.0
   ntp: ^2.0.0

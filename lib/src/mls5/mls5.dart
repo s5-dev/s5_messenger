@@ -41,19 +41,19 @@ class S5Messenger {
 
   Future<void> init(S5 inputS5, [String prefix = 'default']) async {
     s5 = inputS5;
-    dataBox = await Hive.openBox('vup-chat-data');
-    groupsBox = await Hive.openBox('vup-chat-groups');
+    dataBox = await Hive.openBox('s5-messenger-data');
+    groupsBox = await Hive.openBox('s5-messenger-groups');
     final databaseEncryptionKey = Uint8List(32);
 
     messageStoreBox = await Hive.openBox(
-      'vup-chat-messages',
+      's5-messenger-messages',
       encryptionCipher: HiveAesCipher(databaseEncryptionKey),
     );
 
     // ! if it breaks
     // groupsBox.clear();
 
-    groupCursorBox = await Hive.openBox('vup-chat-groups-cursor');
+    groupCursorBox = await Hive.openBox('s5-messenger-groups-cursor');
 
     keystoreBox = /*  HiveKeyValueDB( */ await Hive.openBox('$prefix-keystore');
     // groupStateDB = HiveKeyValueDB(await Hive.openBox('group_state'));

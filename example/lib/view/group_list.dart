@@ -52,11 +52,12 @@ class _GroupListViewState extends State<GroupListView> {
                   );
                   if (res == null) return;
                   final String welcome = res.first;
-                  if (!welcome.startsWith('s5messenger-group-invite:')) throw 'TODO1';
+                  if (!welcome.startsWith('s5messenger-group-invite:'))
+                    throw 'TODO1';
 
                   final groupId = await s5messenger.acceptInviteAndJoinGroup(
                     base64UrlNoPaddingDecode(
-                      welcome.substring(18),
+                      welcome.substring(25),
                     ),
                   );
                   s5messenger.messengerState.groupId = groupId;
@@ -83,7 +84,8 @@ class _GroupListViewState extends State<GroupListView> {
 
                   Clipboard.setData(
                     ClipboardData(
-                      text: 's5messenger-key-package:${base64UrlNoPaddingEncode(kp)}',
+                      text:
+                          's5-messenger-key-package:${base64UrlNoPaddingEncode(kp)}',
                     ),
                   );
                 },
