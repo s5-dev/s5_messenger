@@ -1,4 +1,3 @@
-publish_to: none
 name: s5_messenger
 description: "Drop in performant messaging library based on MLS & S5"
 version: 0.1.0
