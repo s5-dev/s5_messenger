@@ -9,7 +9,7 @@
     },
     {
       "name": "async",
-      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/async-2.13.0",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/async-2.12.0",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
@@ -75,7 +75,7 @@
     },
     {
       "name": "fake_async",
-      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/fake_async-1.3.3",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/fake_async-1.3.2",
       "packageUri": "lib/",
       "languageVersion": "3.3"
     },
@@ -99,13 +99,13 @@
     },
     {
       "name": "flutter",
-      "rootUri": "file:///home/covalent/devStuff/flutter/packages/flutter",
+      "rootUri": "file:///home/covalent/devStuff/s5_messenger/.flutter/packages/flutter",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
     {
       "name": "flutter_driver",
-      "rootUri": "file:///home/covalent/devStuff/flutter/packages/flutter_driver",
+      "rootUri": "file:///home/covalent/devStuff/s5_messenger/.flutter/packages/flutter_driver",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
@@ -123,13 +123,13 @@
     },
     {
       "name": "flutter_test",
-      "rootUri": "file:///home/covalent/devStuff/flutter/packages/flutter_test",
+      "rootUri": "file:///home/covalent/devStuff/s5_messenger/.flutter/packages/flutter_test",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
     {
       "name": "fuchsia_remote_debug_protocol",
-      "rootUri": "file:///home/covalent/devStuff/flutter/packages/fuchsia_remote_debug_protocol",
+      "rootUri": "file:///home/covalent/devStuff/s5_messenger/.flutter/packages/fuchsia_remote_debug_protocol",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
@@ -159,7 +159,7 @@
     },
     {
       "name": "integration_test",
-      "rootUri": "file:///home/covalent/devStuff/flutter/packages/integration_test",
+      "rootUri": "file:///home/covalent/devStuff/s5_messenger/.flutter/packages/integration_test",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
@@ -171,7 +171,7 @@
     },
     {
       "name": "leak_tracker",
-      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/leak_tracker-10.0.9",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/leak_tracker-10.0.8",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
@@ -291,7 +291,7 @@
     },
     {
       "name": "sky_engine",
-      "rootUri": "file:///home/covalent/devStuff/flutter/bin/cache/pkg/sky_engine",
+      "rootUri": "file:///home/covalent/devStuff/s5_messenger/.flutter/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
@@ -357,7 +357,7 @@
     },
     {
       "name": "vm_service",
-      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/vm_service-15.0.0",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/vm_service-14.3.1",
       "packageUri": "lib/",
       "languageVersion": "3.3"
     },
@@ -375,7 +375,7 @@
     },
     {
       "name": "webdriver",
-      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/webdriver-3.1.0",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/webdriver-3.0.4",
       "packageUri": "lib/",
       "languageVersion": "3.1"
     },
@@ -398,9 +398,10 @@
       "languageVersion": "3.6"
     }
   ],
+  "generated": "2025-06-09T15:56:18.065540Z",
   "generator": "pub",
-  "generatorVersion": "3.8.1",
-  "flutterRoot": "file:///home/covalent/devStuff/flutter",
-  "flutterVersion": "3.32.1",
+  "generatorVersion": "3.7.2",
+  "flutterRoot": "file:///home/covalent/devStuff/s5_messenger/.flutter",
+  "flutterVersion": "3.29.3",
   "pubCache": "file:///home/covalent/.pub-cache"
 }
