@@ -8,13 +8,13 @@ class MLSApplicationMessage {
   final Uint8List sender;
   final Uint8List identity;
   final Message msg;
-  final int ts;
+  final int seq; // the slot in the sequence of messges in the channel
 
   MLSApplicationMessage({
     required this.msg,
     required this.identity,
     required this.sender,
-    required this.ts,
+    required this.seq,
   });
 
   Uint8List serialize() {
@@ -31,9 +31,7 @@ class MLSApplicationMessage {
   }
 
   static MLSApplicationMessage fromProcessIncomingMessageResponse(
-    ProcessIncomingMessageResponse res,
-    int ts,
-  ) {
+      ProcessIncomingMessageResponse res, int seq) {
     if (res.applicationMessage[0] != mlsApplicationMessagePrefixS5Messenger) {
       throw 'Unsupported application message prefix ${res.applicationMessage[0]}';
     }
@@ -44,14 +42,10 @@ class MLSApplicationMessage {
       throw 'Unsupported s5 messenger message type prefix ${res.applicationMessage[1]}';
     }
     return MLSApplicationMessage(
-      msg: msg,
-      identity: res.identity,
-      sender: res.sender,
-      ts: ts,
-    );
+        msg: msg, identity: res.identity, sender: res.sender, seq: seq);
   }
 
-  static MLSApplicationMessage deserialize(Uint8List data, int ts) {
+  static MLSApplicationMessage deserialize(Uint8List data, int seq) {
     final senderLength = data[0];
     final identityLength = data[senderLength + 1];
     return fromProcessIncomingMessageResponse(
@@ -65,7 +59,7 @@ class MLSApplicationMessage {
         sender: data.sublist(1, 1 + senderLength),
         epoch: BigInt.from(0),
       ),
-      ts,
+      seq,
     );
   }
 }
@@ -83,7 +77,8 @@ class TextMessage extends Message {
   ];
 
   final String text;
-  final int ts; // when this post was created, in milliseconds?
+  // when this post was created, in milliseconds, this is seperate from the seq of the base message
+  final int ts;
   final Uint8List? embed; // flexible embed you can put msgpack into
 
   TextMessage({required this.text, required this.ts, this.embed});
@@ -95,10 +90,9 @@ class TextMessage extends Message {
   static Message deserialize(Uint8List data) {
     final body = jsonDecode(utf8.decode(data));
     final dynamic embedData = body['embed'];
-    final Uint8List? embed =
-        embedData != null
-            ? Uint8List.fromList(List<int>.from(embedData))
-            : null;
+    final Uint8List? embed = embedData != null
+        ? Uint8List.fromList(List<int>.from(embedData))
+        : null;
     return TextMessage(text: body['text'], ts: body['ts'], embed: embed);
   }
 }

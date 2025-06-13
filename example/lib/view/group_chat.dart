@@ -48,11 +48,7 @@ class _GroupChatViewState extends State<GroupChatView> {
                         padding: const EdgeInsets.all(8.0),
                         child: Row(
                           children: [
-                            Text(
-                              DateTime.fromMillisecondsSinceEpoch(msg.ts)
-                                  .toIso8601String()
-                                  .substring(11, 19),
-                            ),
+                            Text(msg.seq.toString()),
                             const SizedBox(width: 8),
                             Text(
                               msg.identity.isEmpty

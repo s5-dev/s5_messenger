@@ -6,6 +6,8 @@ import 'dart:typed_data';
 import 'package:lib5/src/util/big_endian.dart';
 import 'package:lib5/util.dart';
 import 'package:ntp/ntp.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import 'package:s5/s5.dart';
 import 'package:s5/src/hive_key_value_db.dart';
 import 'package:s5_messenger/src/mls5/state/messenger.dart';
@@ -25,6 +27,9 @@ class S5Messenger {
 
   late final Box dataBox;
   late final Box groupsBox;
+  // groupCursorBox defines the current "height" of the stream channel
+  // if the last message you recieved was at "height" (seq) 39, then you can set
+  // to only look *after* that to not process duplicate messages
   late final Box groupCursorBox;
 
   late final Box messageStoreBox;
@@ -41,19 +46,25 @@ class S5Messenger {
 
   Future<void> init(S5 inputS5, [String prefix = 'default']) async {
     s5 = inputS5;
-    dataBox = await Hive.openBox('s5-messenger-data');
-    groupsBox = await Hive.openBox('s5-messenger-groups');
+    final doccumentPath = await getApplicationDocumentsDirectory();
+    print(path.join(doccumentPath.path, "messenger_data").toString());
+    dataBox = await Hive.openBox('s5-messenger-data',
+        path: path.join(doccumentPath.path, "messenger_data"));
+    groupsBox = await Hive.openBox('s5-messenger-groups',
+        path: path.join(doccumentPath.path, "messenger_groups"));
     final databaseEncryptionKey = Uint8List(32);
 
     messageStoreBox = await Hive.openBox(
       's5-messenger-messages',
       encryptionCipher: HiveAesCipher(databaseEncryptionKey),
+      path: path.join(doccumentPath.path, "messenger_messages"),
     );
 
     // ! if it breaks
     // groupsBox.clear();
 
-    groupCursorBox = await Hive.openBox('s5-messenger-groups-cursor');
+    groupCursorBox = await Hive.openBox('s5-messenger-groups-cursor',
+        path: path.join(doccumentPath.path, "messenger_cursor"));
 
     keystoreBox = /*  HiveKeyValueDB( */ await Hive.openBox('$prefix-keystore');
     // groupStateDB = HiveKeyValueDB(await Hive.openBox('group_state'));
@@ -157,6 +168,8 @@ class S5Messenger {
       'id': groupId,
       'name': 'Group #${groupsBox.length + 1}',
     });
+
+    groupCursorBox.put(groupId, 0); // init with no messages
   }
 
   Future<KeyPairEd25519> deriveCommunicationChannelKeyPair(String groupId) {
@@ -204,7 +217,8 @@ class S5Messenger {
       await openmlsGroupSave(group: group, config: config),
     );
     await saveKeyStore();
-
+    groupCursorBox.put(
+        groupId, 0); // default to 0, will jump to the next one on new message
     groups[groupId] = GroupState(
       groupId,
       group: group,
@@ -257,22 +271,22 @@ class GroupState {
 
     await for (final event in mls.s5.api.streamSubscribe(
       channel.publicKey,
-      afterTimestamp: mls.groupCursorBox.get(groupId),
+      afterRevision: mls.groupCursorBox.get(groupId),
     )) {
-      print('debug1 incoming $groupId ${event.ts}');
+      print('debug1 incoming $groupId ${event.seq}');
       try {
-        if (ignoreMessageIds.contains(event.ts)) {
-          print('debug1 ignore incoming message $groupId ${event.ts}');
-          await mls.groupCursorBox.put(groupId, event.ts);
+        if (ignoreMessageIds.contains(event.seq)) {
+          print('debug1 ignore incoming message $groupId ${event.seq}');
+          await mls.groupCursorBox.put(groupId, event.seq);
           return;
         }
-        if ((mls.groupCursorBox.get(groupId) ?? -1) >= event.ts) {
-          print('skipping message, unexpected ts');
+        if ((mls.groupCursorBox.get(groupId) ?? -1) >= event.seq) {
+          print('skipping message, unexpected seq');
           return;
         }
         final res = await openmlsGroupProcessIncomingMessage(
           group: group,
-          mlsMessageIn: event.data,
+          mlsMessageIn: event.data != null ? event.data! : <int>[],
           config: mls.config,
         );
 
@@ -282,13 +296,13 @@ class GroupState {
 
           final msg = MLSApplicationMessage.fromProcessIncomingMessageResponse(
             res,
-            event.ts,
+            event.seq,
           );
           _processNewMessage(msg);
         } else {
           refreshGroupMemberList();
         }
-        await mls.groupCursorBox.put(groupId, event.ts);
+        await mls.groupCursorBox.put(groupId, event.seq);
       } catch (e, st) {
         print(e);
         print(st);
@@ -307,16 +321,14 @@ class GroupState {
 
   void loadMoreMessages() {
     final anchorLow = String.fromCharCodes(base64UrlNoPaddingDecode(groupId));
-    final anchorHigh =
-        messagesMemory.isEmpty
-            ? String.fromCharCodes(base64UrlNoPaddingDecode(groupId) + [255])
-            : makeKey(messagesMemory.last);
-    final keys =
-        mls.messageStoreBox.keys
-            .where(
-              (k) => k.compareTo(anchorLow) > 0 && k.compareTo(anchorHigh) < 0,
-            )
-            .toList();
+    final anchorHigh = messagesMemory.isEmpty
+        ? String.fromCharCodes(base64UrlNoPaddingDecode(groupId) + [255])
+        : makeKey(messagesMemory.last);
+    final keys = mls.messageStoreBox.keys
+        .where(
+          (k) => k.compareTo(anchorLow) > 0 && k.compareTo(anchorHigh) < 0,
+        )
+        .toList();
     keys.sort((a, b) => b.compareTo(a));
     // print(keys);
 
@@ -345,12 +357,12 @@ class GroupState {
   } */
 
   String makeKey(MLSApplicationMessage msg) {
-    // final seq = encodeEndian(msg.ts, 8);
+    // final seq = encodeEndian(msg.seq, 8);
     /*     
-    return '$groupId/${msg.ts}'; */
+    return '$groupId/${msg.seq}'; */
     return String.fromCharCodes(
       Uint8List.fromList(
-        base64UrlNoPaddingDecode(groupId) + encodeBigEndian(msg.ts, 8),
+        base64UrlNoPaddingDecode(groupId) + encodeBigEndian(msg.seq, 8),
       ),
     );
   }
@@ -385,14 +397,14 @@ class GroupState {
     );
     await mls.saveKeyStore();
 
-    final ts = await sendMessageToStreamChannel(res.mlsMessageOut);
+    await sendMessageToStreamChannel(res.mlsMessageOut);
     await openmlsGroupSave(group: group, config: mls.config);
 
     refreshGroupMemberList();
 
     await mls.saveKeyStore();
 
-    /*     return 's5messenger-group-invite:${base64UrlNoPaddingEncode(groupChannels[groupId]!.publicKey)}/$ts/${base64UrlNoPaddingEncode(res.welcomeOut)}'; */
+    /*     return 's5messenger-group-invite:${base64UrlNoPaddingEncode(groupChannels[groupId]!.publicKey)}/$seq/${base64UrlNoPaddingEncode(res.welcomeOut)}'; */
     return 's5messenger-group-invite:${base64UrlNoPaddingEncode(res.welcomeOut)}';
   }
 
@@ -409,7 +421,7 @@ class GroupState {
       message: message,
       config: mls.config,
     );
-    final ts = await sendMessageToStreamChannel(payload);
+    final int seq = await sendMessageToStreamChannel(payload);
     await mls.saveKeyStore();
 
     _processNewMessage(
@@ -417,25 +429,24 @@ class GroupState {
         msg: msg,
         identity: Uint8List(0),
         sender: Uint8List(0),
-        ts: ts,
+        seq: seq,
       ),
     );
   }
 
   Future<int> sendMessageToStreamChannel(Uint8List message) async {
-    final msg = await SignedStreamMessage.create(
+    final int currentCursor = mls.groupCursorBox.get(groupId);
+    final msg = await StreamMessage.create(
       kp: channel,
       data: message,
-      ts:
-          DateTime.now()
-              .add(mls.timeOffset)
-              .millisecondsSinceEpoch, // TODO Maybe use microseconds or seq numbers  to further avoid collisions on the s5 streams transport layer
+      seq: currentCursor + 1,
       crypto: mls.crypto,
     );
-
-    ignoreMessageIds.add(msg.ts);
+    // Now that that message is sucsessful, iterate the cursor
+    mls.groupCursorBox.put(groupId, currentCursor + 1);
+    ignoreMessageIds.add(msg.seq);
     await mls.s5.api.streamPublish(msg);
-    return msg.ts;
+    return msg.seq;
   }
 
   void rename(String newName) {

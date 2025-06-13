@@ -5,12 +5,11 @@
   "packages": [
     {
       "name": "s5_messenger",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": [
         "flutter",
         "flutter_rust_bridge",
         "hive",
-        "lib5",
         "ntp",
         "plugin_platform_interface",
         "s5"
@@ -134,20 +133,6 @@
       "name": "ntp",
       "version": "2.0.0",
       "dependencies": []
-    },
-    {
-      "name": "lib5",
-      "version": "0.2.0",
-      "dependencies": [
-        "base_codecs",
-        "convert",
-        "http",
-        "http_parser",
-        "mime",
-        "s5_msgpack",
-        "tint",
-        "web_socket_channel"
-      ]
     },
     {
       "name": "hive",
@@ -467,66 +452,23 @@
       "name": "lib5_crypto_implementation_dart",
       "version": "0.2.0",
       "dependencies": [
-        "cryptography",
+        "cryptography_flutter_plus",
+        "cryptography_plus",
         "lib5"
       ]
     },
     {
-      "name": "web_socket_channel",
-      "version": "2.4.0",
+      "name": "lib5",
+      "version": "1.0.0-pre.1",
       "dependencies": [
-        "async",
-        "crypto",
-        "stream_channel"
-      ]
-    },
-    {
-      "name": "tint",
-      "version": "2.0.1",
-      "dependencies": []
-    },
-    {
-      "name": "s5_msgpack",
-      "version": "0.3.0",
-      "dependencies": []
-    },
-    {
-      "name": "mime",
-      "version": "1.0.6",
-      "dependencies": []
-    },
-    {
-      "name": "http_parser",
-      "version": "4.1.2",
-      "dependencies": [
-        "collection",
-        "source_span",
-        "string_scanner",
-        "typed_data"
-      ]
-    },
-    {
-      "name": "http",
-      "version": "1.4.0",
-      "dependencies": [
-        "async",
+        "base_codecs",
+        "convert",
+        "http",
         "http_parser",
-        "meta",
-        "web"
-      ]
-    },
-    {
-      "name": "convert",
-      "version": "3.1.2",
-      "dependencies": [
-        "typed_data"
-      ]
-    },
-    {
-      "name": "base_codecs",
-      "version": "1.0.1",
-      "dependencies": [
-        "crypto"
+        "mime",
+        "s5_msgpack",
+        "tint",
+        "web_socket_channel"
       ]
     },
     {
@@ -581,8 +523,16 @@
       ]
     },
     {
-      "name": "cryptography",
-      "version": "2.7.0",
+      "name": "cryptography_flutter_plus",
+      "version": "2.3.4",
+      "dependencies": [
+        "cryptography_plus",
+        "flutter"
+      ]
+    },
+    {
+      "name": "cryptography_plus",
+      "version": "2.7.1",
       "dependencies": [
         "collection",
         "crypto",
@@ -590,6 +540,66 @@
         "js",
         "meta",
         "typed_data"
+      ]
+    },
+    {
+      "name": "web_socket_channel",
+      "version": "3.0.3",
+      "dependencies": [
+        "async",
+        "crypto",
+        "stream_channel",
+        "web",
+        "web_socket"
+      ]
+    },
+    {
+      "name": "tint",
+      "version": "2.0.1",
+      "dependencies": []
+    },
+    {
+      "name": "s5_msgpack",
+      "version": "0.3.0",
+      "dependencies": []
+    },
+    {
+      "name": "mime",
+      "version": "2.0.0",
+      "dependencies": []
+    },
+    {
+      "name": "http_parser",
+      "version": "4.1.2",
+      "dependencies": [
+        "collection",
+        "source_span",
+        "string_scanner",
+        "typed_data"
+      ]
+    },
+    {
+      "name": "http",
+      "version": "1.4.0",
+      "dependencies": [
+        "async",
+        "http_parser",
+        "meta",
+        "web"
+      ]
+    },
+    {
+      "name": "convert",
+      "version": "3.1.2",
+      "dependencies": [
+        "typed_data"
+      ]
+    },
+    {
+      "name": "base_codecs",
+      "version": "1.0.1",
+      "dependencies": [
+        "crypto"
       ]
     },
     {
@@ -601,9 +611,14 @@
     },
     {
       "name": "js",
-      "version": "0.6.7",
+      "version": "0.7.2",
+      "dependencies": []
+    },
+    {
+      "name": "web_socket",
+      "version": "1.0.1",
       "dependencies": [
-        "meta"
+        "web"
       ]
     }
   ],

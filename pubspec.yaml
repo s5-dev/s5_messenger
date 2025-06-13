@@ -12,10 +12,12 @@ dependencies:
     sdk: flutter
   flutter_rust_bridge: ^2.10.0
   hive: ^2.2.3
-  lib5: ^0.2.0
   ntp: ^2.0.0
+  path: ^1.9.1
+  path_provider: ^2.1.5
   plugin_platform_interface: ^2.0.2
-  s5: ^0.2.0
+  s5:
+    git: https://github.com/lukehmcc/s5-dart.git
 
 dev_dependencies:
   ffi: ^2.1.3

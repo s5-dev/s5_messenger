@@ -68,8 +68,14 @@
       "languageVersion": "3.4"
     },
     {
-      "name": "cryptography",
-      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/cryptography-2.7.0",
+      "name": "cryptography_flutter_plus",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/cryptography_flutter_plus-2.3.4",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
+    },
+    {
+      "name": "cryptography_plus",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/cryptography_plus-2.7.1",
       "packageUri": "lib/",
       "languageVersion": "3.1"
     },
@@ -165,9 +171,9 @@
     },
     {
       "name": "js",
-      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/js-0.6.7",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/js-0.7.2",
       "packageUri": "lib/",
-      "languageVersion": "2.19"
+      "languageVersion": "3.7"
     },
     {
       "name": "leak_tracker",
@@ -189,13 +195,13 @@
     },
     {
       "name": "lib5",
-      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/lib5-0.2.0",
+      "rootUri": "file:///home/covalent/.pub-cache/git/lib5-6996519131a5710feaee85e13dd016de4d0d31fc/",
       "packageUri": "lib/",
       "languageVersion": "3.0"
     },
     {
       "name": "lib5_crypto_implementation_dart",
-      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/lib5_crypto_implementation_dart-0.2.0",
+      "rootUri": "file:///home/covalent/.pub-cache/git/lib5_crypto_implementation_dart-4aae2f84fb6122d989f229b06b766827ffd5c1b9/",
       "packageUri": "lib/",
       "languageVersion": "3.0"
     },
@@ -231,7 +237,7 @@
     },
     {
       "name": "mime",
-      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/mime-1.0.6",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/mime-2.0.0",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
@@ -252,6 +258,42 @@
       "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/path-1.9.1",
       "packageUri": "lib/",
       "languageVersion": "3.4"
+    },
+    {
+      "name": "path_provider",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/path_provider-2.1.5",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "path_provider_android",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/path_provider_android-2.2.17",
+      "packageUri": "lib/",
+      "languageVersion": "3.6"
+    },
+    {
+      "name": "path_provider_foundation",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/path_provider_foundation-2.4.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "path_provider_linux",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/path_provider_linux-2.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.19"
+    },
+    {
+      "name": "path_provider_platform_interface",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/path_provider_platform_interface-2.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "path_provider_windows",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/path_provider_windows-2.3.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
     },
     {
       "name": "platform",
@@ -279,7 +321,7 @@
     },
     {
       "name": "s5",
-      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/s5-0.2.0",
+      "rootUri": "file:///home/covalent/.pub-cache/git/s5-dart-7464ef5d5288ea08fe5dca8681c253f3ce00baa7/",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
@@ -368,16 +410,28 @@
       "languageVersion": "3.4"
     },
     {
-      "name": "web_socket_channel",
-      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/web_socket_channel-2.4.0",
+      "name": "web_socket",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/web_socket-1.0.1",
       "packageUri": "lib/",
-      "languageVersion": "2.15"
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "web_socket_channel",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/web_socket_channel-3.0.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
     },
     {
       "name": "webdriver",
       "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/webdriver-3.0.4",
       "packageUri": "lib/",
       "languageVersion": "3.1"
+    },
+    {
+      "name": "xdg_directories",
+      "rootUri": "file:///home/covalent/.pub-cache/hosted/pub.dev/xdg_directories-1.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
     },
     {
       "name": "yaml",
@@ -398,7 +452,7 @@
       "languageVersion": "3.6"
     }
   ],
-  "generated": "2025-06-09T16:01:52.087416Z",
+  "generated": "2025-06-13T15:05:00.435328Z",
   "generator": "pub",
   "generatorVersion": "3.7.2",
   "flutterRoot": "file:///home/covalent/devStuff/s5_messenger/.flutter",
