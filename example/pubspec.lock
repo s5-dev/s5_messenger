@@ -105,14 +105,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.6"
-  cryptography:
+  cryptography_flutter_plus:
     dependency: transitive
     description:
-      name: cryptography
-      sha256: d146b76d33d94548cf035233fbc2f4338c1242fa119013bead807d033fc4ae05
+      name: cryptography_flutter_plus
+      sha256: "35a8c270aae0abaac7125a6b6b33c2b3daa0ea90d85320aa7d588b6dd6c2edc9"
       url: "https://pub.dev"
     source: hosted
-    version: "2.7.0"
+    version: "2.3.4"
+  cryptography_plus:
+    dependency: transitive
+    description:
+      name: cryptography_plus
+      sha256: "34db787df4f4740a39474b6fb0a610aa6dc13a5b5b68754b4787a79939ac0454"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.7.1"
   cupertino_icons:
     dependency: "direct main"
     description:
@@ -246,10 +254,10 @@ packages:
     dependency: transitive
     description:
       name: js
-      sha256: f2c445dce49627136094980615a031419f7f3eb393237e4ecd97ac15dea343f3
+      sha256: "53385261521cc4a0c4658fd0ad07a7d14591cf8fc33abbceae306ddb974888dc"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.7"
+    version: "0.7.2"
   leak_tracker:
     dependency: transitive
     description:
@@ -275,20 +283,22 @@ packages:
     source: hosted
     version: "3.0.1"
   lib5:
-    dependency: "direct main"
+    dependency: transitive
     description:
-      name: lib5
-      sha256: cd3d867a150bb7aacd07cfd23729da75cc2416b9c4099d722e499bfaa392e7b7
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: "0.2.0-patched"
+      resolved-ref: "1ac7b21f6a35b489a0743ed522a33fab2d3c51a6"
+      url: "https://github.com/lukehmcc/lib5.git"
+    source: git
     version: "0.2.0"
   lib5_crypto_implementation_dart:
     dependency: transitive
     description:
-      name: lib5_crypto_implementation_dart
-      sha256: "810a15c63586043277a2b9a02d7462536fd8f32d2467ec4376f53680c369dc70"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: "0.2.0-patched"
+      resolved-ref: fb89e928be1b076db0b581e19e0d9f10ad08acc3
+      url: "https://github.com/lukehmcc/lib5_crypto_implementation_dart.git"
+    source: git
     version: "0.2.0"
   lints:
     dependency: transitive
@@ -445,10 +455,11 @@ packages:
   s5:
     dependency: "direct main"
     description:
-      name: s5
-      sha256: acf590a1c64e6a6a747c25a996611cc8f19ed0507ab0feb4afa0d34be52330ea
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: "0.2.0-patched"
+      resolved-ref: "2e69754ebbd87ec1705216ce2230df89a986e877"
+      url: "https://github.com/lukehmcc/s5-dart.git"
+    source: git
     version: "0.2.0"
   s5_messenger:
     dependency: "direct main"
@@ -456,7 +467,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.1.1"
   s5_msgpack:
     dependency: transitive
     description:
