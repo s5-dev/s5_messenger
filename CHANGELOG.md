@@ -1,3 +1,7 @@
+## 0.1.2
+
+* Fix: Swap s5-dart library to patched version. Improves native performance greatly.
+
 ## 0.1.1
 
 * Add licence (MIT)

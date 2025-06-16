@@ -1,6 +1,6 @@
 name: s5_messenger
 description: "Drop in performant messaging library based on MLS & S5"
-version: 0.1.1
+version: 0.1.2
 homepage: https://github.com/s5-dev/s5_messenger
 
 environment:
@@ -17,6 +17,10 @@ dependencies:
   s5:
     git: 
       url: https://github.com/lukehmcc/s5-dart.git
+      ref: 0.2.0-patched
+  lib5: 
+    git: 
+      url: https://github.com/lukehmcc/lib5.git
       ref: 0.2.0-patched
 
 dev_dependencies:
