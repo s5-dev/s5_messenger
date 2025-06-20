@@ -18,7 +18,7 @@ Add to your ```pubspec.yaml```:
 ```yaml
 dependencies:
   s5_messenger: ^0.1.2
-  hive: ^2.2.3
+  hive_ce: ^2.11.3
   s5:
     git: 
       url: https://github.com/lukehmcc/s5-dart.git

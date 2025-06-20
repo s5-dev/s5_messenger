@@ -11,10 +11,11 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_rust_bridge: ^2.10.0
-  hive: ^2.2.3
+  hive_ce: ^2.11.3
   ntp: ^2.0.0
   plugin_platform_interface: ^2.0.2
   s5:
+    # path: ../s5-dart/
     git: 
       url: https://github.com/lukehmcc/s5-dart.git
       ref: 0.2.0-patched

@@ -11,7 +11,7 @@ import 'package:s5/src/hive_key_value_db.dart';
 import 'package:s5_messenger/src/mls5/state/messenger.dart';
 import 'package:s5_messenger/src/rust/api/simple.dart';
 import 'package:s5_messenger/src/rust/frb_generated.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_ce/hive.dart';
 
 import '../mls5/util/state.dart';
 import '../mls5/model/message.dart';
@@ -88,7 +88,7 @@ class S5Messenger {
   }
 
   Future<HiveKeyValueDB> openDB(String key) async {
-    return HiveKeyValueDB(await Hive.openBox('s5-node-$key'));
+    return HiveKeyValueDB(await Hive.openBox<Uint8List>('s5-node-$key'));
   }
 
   Future<void> saveKeyStore() async {
@@ -307,16 +307,14 @@ class GroupState {
 
   void loadMoreMessages() {
     final anchorLow = String.fromCharCodes(base64UrlNoPaddingDecode(groupId));
-    final anchorHigh =
-        messagesMemory.isEmpty
-            ? String.fromCharCodes(base64UrlNoPaddingDecode(groupId) + [255])
-            : makeKey(messagesMemory.last);
-    final keys =
-        mls.messageStoreBox.keys
-            .where(
-              (k) => k.compareTo(anchorLow) > 0 && k.compareTo(anchorHigh) < 0,
-            )
-            .toList();
+    final anchorHigh = messagesMemory.isEmpty
+        ? String.fromCharCodes(base64UrlNoPaddingDecode(groupId) + [255])
+        : makeKey(messagesMemory.last);
+    final keys = mls.messageStoreBox.keys
+        .where(
+          (k) => k.compareTo(anchorLow) > 0 && k.compareTo(anchorHigh) < 0,
+        )
+        .toList();
     keys.sort((a, b) => b.compareTo(a));
     // print(keys);
 
@@ -426,10 +424,9 @@ class GroupState {
     final msg = await SignedStreamMessage.create(
       kp: channel,
       data: message,
-      ts:
-          DateTime.now()
-              .add(mls.timeOffset)
-              .millisecondsSinceEpoch, // TODO Maybe use microseconds or seq numbers  to further avoid collisions on the s5 streams transport layer
+      ts: DateTime.now()
+          .add(mls.timeOffset)
+          .millisecondsSinceEpoch, // TODO Maybe use microseconds or seq numbers  to further avoid collisions on the s5 streams transport layer
       crypto: mls.crypto,
     );
 
