@@ -37,7 +37,7 @@ We welcome contributions to these three core components:
 
 **Getting Started:**
 
-- Start in `lib/`
+- Start in [lib/](./lib/)
 
 ### 3. Example App
 

@@ -30,14 +30,14 @@ dependencies:
 
 See [example](./example/)
 
-## Contributing 🤝
+## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup using:
 
 - ```flutter_rust_bridge``` for FFI
 - ```cargokit``` for Rust-Flutter integration
 
-## License 📄
+## License
 
 MIT (See [LICENSE](LICENSE))
 
