@@ -1,8 +1,8 @@
-# Contribution Areas 🛠
+# Contribution Areas
 
 We welcome contributions to these three core components:
 
-### 1. Rust Core 🦀
+### 1. Rust Core
 
 **The cryptographic backbone** - handles all heavy lifting through:
 
@@ -10,9 +10,9 @@ We welcome contributions to these three core components:
 - S5 network integration
 - Performance-critical operations
 
-**Setup Guide:**
+**Getting Started:**
 
-1. Follow the [Flutter+Rust Bridge tutorial](https://cjycode.com/flutter_rust_bridge/) meticulously
+1. Follow the [Flutter+Rust Bridge tutorial](https://cjycode.com/flutter_rust_bridge/)
 2. Ensure `rustup` is installed (`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`)
 3. After modifications, regenerate bindings:
 
@@ -20,13 +20,13 @@ We welcome contributions to these three core components:
    flutter_rust_bridge_codegen generate
    ```
 
-**⚠️ Common Pitfalls:**
+**Common Pitfalls:**
 
 - Missing Rust toolchain (install via `rustup`)
 - Incompatible toolchain versions
 - Forgetting to regenerate bindings after Rust changes
 
-### 2. Dart Library 💙
+### 2. Dart Library
 
 **The Flutter interface layer** needs help with:
 
@@ -37,16 +37,19 @@ We welcome contributions to these three core components:
 
 **Getting Started:**
 
-- Study the `lib/` directory structure
-- Maintain consistent Dart analyzer rules (see `analysis_options.yaml`)
+- Start in `lib/`
 
-### 3. Example App 📱
+### 3. Example App
 
 **Reference implementation** that demonstrates:
 
 - Complete integration workflow
 - Best practice usage patterns
 - UI/UX improvements welcome!
+
+**Getting Started**
+
+- Start in [example/](./example)
 
 **Improvement Ideas:**
 

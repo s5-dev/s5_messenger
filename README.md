@@ -3,15 +3,15 @@
 
 A **Flutter package** for secure messaging using [s5](https://s5.pro/) and [MLS](https://www.ietf.org/blog/mls-secure-and-usable-end-to-end-encryption/) (Messaging Layer Security) protocols. Enables easy-to-set-up, end-to-end encrypted messaging between clients.
 
-## Features ✨
+## Features
 
-- **End-to-end encryption** via MLS protocol
-- **Decentralized storage** using S5 for message transportation
+- **End-to-end encryption** via MLS
+- **Decentralized routing** using S5 for message transportation
 - **Cross-platform** support (Android, iOS, Linux, macOS, Windows)
 - **Rust-powered** core via ```flutter_rust_bridge``` for performance
 - **Minimal-config** messaging between authenticated clients
 
-## Installation 📦
+## Installation
 
 Add to your ```pubspec.yaml```:
 
@@ -26,16 +26,9 @@ dependencies:
 
 ```
 
-## Basic Usage 🚀
+## Basic Usage
 
 See [example](./example/)
-
-## Architecture 🏗
-
-1. **MLS Protocol**: Handles key management and message encryption
-2. **S5 Integration**: Stores encrypted messages in a decentralized network
-3. **Flutter Interface**: Platform-agnostic UI components
-4. **Rust Core**: High-performance cryptographic operations
 
 ## Contributing 🤝
 
