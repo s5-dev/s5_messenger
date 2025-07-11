@@ -85,7 +85,7 @@ class _GroupChatViewState extends State<GroupChatView> {
                   labelText: 'Your message',
                 ),
                 onSubmitted: (text) async {
-                  await group.sendMessage(text);
+                  await group.sendMessage(text, null);
                   textCtrl.clear();
                   textCtrlFocusNode.requestFocus();
                 },

@@ -217,7 +217,7 @@ class S5Messenger {
       'id': groupId,
       'name': 'Group #${groupsBox.length + 1}',
     });
-    groups[groupId]!.sendMessage('joined the group');
+    groups[groupId]!.sendMessage('joined the group', null);
     return groupId;
   }
 }
@@ -311,9 +311,7 @@ class GroupState {
         ? String.fromCharCodes(base64UrlNoPaddingDecode(groupId) + [255])
         : makeKey(messagesMemory.last);
     final keys = mls.messageStoreBox.keys
-        .where(
-          (k) => k.compareTo(anchorLow) > 0 && k.compareTo(anchorHigh) < 0,
-        )
+        .where((k) => k.compareTo(anchorLow) > 0 && k.compareTo(anchorHigh) < 0)
         .toList();
     keys.sort((a, b) => b.compareTo(a));
     // print(keys);
@@ -394,11 +392,9 @@ class GroupState {
     return 's5messenger-group-invite:${base64UrlNoPaddingEncode(res.welcomeOut)}';
   }
 
-  Future<void> sendMessage(String text) async {
+  Future<void> sendMessage(String text, Uint8List? embed) async {
     final msg = TextMessage(
-      text: text,
-      ts: DateTime.now().millisecondsSinceEpoch,
-    );
+        text: text, ts: DateTime.now().millisecondsSinceEpoch, embed: embed);
     final message = Uint8List.fromList(msg.prefix + msg.serialize());
 
     final payload = await openmlsGroupCreateMessage(
