@@ -5,6 +5,7 @@ import 'package:s5/s5.dart';
 import 'package:s5_messenger/s5_messenger.dart';
 import 'package:lib5/util.dart';
 import 'package:s5_messenger_example/view/demo_main_view.dart';
+import 'package:path/path.dart' as path;
 
 late S5 s5;
 late S5Messenger s5messenger;
@@ -54,7 +55,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
   Future<void> _initializeDependencies() async {
     try {
       final dir =
-          await getApplicationDocumentsDirectory(); // Best for persistent data
+          await getApplicationSupportDirectory(); // Best for persistent data
       Hive.init(dir.path);
       // Initialize Hive
       setState(() => hiveInitialized = true);
@@ -68,6 +69,8 @@ class _InitializationScreenState extends State<InitializationScreen> {
           'wss://z2DWuWNZcdSyZLpXFK2uCU3haaWMXrDAgxzv17sDEMHstZb@s5.garden/s5/p2p',
         ],
         logger: SilentLogger(),
+        persistFilePath: path.join(
+            (await getApplicationSupportDirectory()).path, "persist.json"),
       );
       setState(() => s5Initialized = true);
 

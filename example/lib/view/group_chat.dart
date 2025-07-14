@@ -7,6 +7,7 @@ import 'package:lib5/util.dart';
 import 'package:s5_messenger_example/main.dart';
 import 'package:s5_messenger/s5_messenger.dart';
 
+/// This is a demo of how to handle group chats & subscriptions
 class GroupChatView extends StatefulWidget {
   final String id;
   GroupChatView(this.id) : super(key: ValueKey('group-chat-$id'));
@@ -32,6 +33,12 @@ class _GroupChatViewState extends State<GroupChatView> {
               child: StreamBuilder<void>(
                 stream: group.messageListStateNotifier.stream,
                 builder: (context, snapshot) {
+                  // On each rebuild print the embed (which should be 7, to demonstrate embedding)
+                  if (group.messagesMemory.isNotEmpty) {
+                    final TextMessage message =
+                        (group.messagesMemory.first.msg as TextMessage);
+                    logger.info("The embed is: ${message.embed}");
+                  }
                   return ListView.builder(
                     reverse: true,
                     itemCount: group.messagesMemory.length +
@@ -85,7 +92,8 @@ class _GroupChatViewState extends State<GroupChatView> {
                   labelText: 'Your message',
                 ),
                 onSubmitted: (text) async {
-                  await group.sendMessage(text, null);
+                  // Also send along an embed of 7 to test decoding on the other end
+                  await group.sendMessage(text, Uint8List.fromList([7]));
                   textCtrl.clear();
                   textCtrlFocusNode.requestFocus();
                 },

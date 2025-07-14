@@ -89,16 +89,15 @@ class TextMessage extends Message {
   TextMessage({required this.text, required this.ts, this.embed});
 
   @override
-  Uint8List serialize() =>
-      utf8.encode(jsonEncode({'text': text, 'ts': ts, 'embed': embed}));
+  Uint8List serialize() => utf8.encode(jsonEncode(
+      {'text': text, 'ts': ts, if (embed != null) 'embed': embed!.toList()}));
 
   static Message deserialize(Uint8List data) {
     final body = jsonDecode(utf8.decode(data));
     final dynamic embedData = body['embed'];
-    final Uint8List? embed =
-        embedData != null
-            ? Uint8List.fromList(List<int>.from(embedData))
-            : null;
+    final Uint8List? embed = embedData != null
+        ? Uint8List.fromList(List<int>.from(embedData))
+        : null;
     return TextMessage(text: body['text'], ts: body['ts'], embed: embed);
   }
 }
