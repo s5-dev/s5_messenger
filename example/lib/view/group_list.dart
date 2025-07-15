@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:lib5/util.dart';
 import 'package:flutter/services.dart';
 import 'package:s5_messenger_example/main.dart';
+import 'package:uuid/uuid.dart';
 
 class GroupListView extends StatefulWidget {
   const GroupListView({super.key});
@@ -52,14 +53,14 @@ class _GroupListViewState extends State<GroupListView> {
                   );
                   if (res == null) return;
                   final String welcome = res.first;
-                  if (!welcome.startsWith('s5messenger-group-invite:'))
-                    throw 'TODO1';
+                  if (!welcome.startsWith('s5messenger-group-invite:')) {
+                    throw 'Group invite has an invalid prefix!';
+                  }
 
                   final groupId = await s5messenger.acceptInviteAndJoinGroup(
-                    base64UrlNoPaddingDecode(
-                      welcome.substring(25),
-                    ),
-                  );
+                      base64UrlNoPaddingDecode(welcome.substring(25)),
+                      userID,
+                      Uuid().v4());
                   s5messenger.messengerState.groupId = groupId;
                   s5messenger.messengerState.update();
                 },

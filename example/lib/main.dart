@@ -6,13 +6,19 @@ import 'package:s5_messenger/s5_messenger.dart';
 import 'package:lib5/util.dart';
 import 'package:s5_messenger_example/view/demo_main_view.dart';
 import 'package:path/path.dart' as path;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 late S5 s5;
 late S5Messenger s5messenger;
+late String userID;
+late SharedPreferencesWithCache prefs;
 Logger logger = SimpleLogger(prefix: '[s5_messenger]');
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Grab the user's UUID from shared prefs
+  userID = await _getUserUUID();
   // Initialize Rust
   await RustLib.init();
   runApp(const MyApp());
@@ -152,6 +158,18 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(body: Center(child: Text("App has initialized")));
+  }
+}
+
+// Get the user's UUID
+Future<String> _getUserUUID() async {
+  prefs = await SharedPreferencesWithCache.create(
+      cacheOptions: const SharedPreferencesWithCacheOptions());
+  final String id = prefs.getString("user-id").toString();
+  if (id == "null") {
+    return Uuid().v4();
+  } else {
+    return id;
   }
 }
 

@@ -83,14 +83,28 @@ class TextMessage extends Message {
   ];
 
   final String text;
-  final int ts; // when this post was created, in milliseconds?
-  final Uint8List? embed; // flexible embed you can put msgpack into
+  final int ts;
+  final Uint8List? embed;
 
-  TextMessage({required this.text, required this.ts, this.embed});
+  final String senderId; // UUID string
+  final String messageId; // UUID string
+
+  TextMessage({
+    required this.text,
+    required this.ts,
+    this.embed,
+    required this.senderId,
+    required this.messageId,
+  });
 
   @override
-  Uint8List serialize() => utf8.encode(jsonEncode(
-      {'text': text, 'ts': ts, if (embed != null) 'embed': embed!.toList()}));
+  Uint8List serialize() => utf8.encode(jsonEncode({
+        'text': text,
+        'ts': ts,
+        'senderId': senderId,
+        'messageId': messageId,
+        if (embed != null) 'embed': embed!.toList(),
+      }));
 
   static Message deserialize(Uint8List data) {
     final body = jsonDecode(utf8.decode(data));
@@ -98,6 +112,13 @@ class TextMessage extends Message {
     final Uint8List? embed = embedData != null
         ? Uint8List.fromList(List<int>.from(embedData))
         : null;
-    return TextMessage(text: body['text'], ts: body['ts'], embed: embed);
+
+    return TextMessage(
+      text: body['text'],
+      ts: body['ts'],
+      embed: embed,
+      senderId: body['senderId'],
+      messageId: body['messageId'],
+    );
   }
 }

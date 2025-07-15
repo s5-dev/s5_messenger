@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:lib5/util.dart';
 import 'package:s5_messenger_example/main.dart';
 import 'package:s5_messenger/s5_messenger.dart';
+import 'package:uuid/uuid.dart';
 
 /// This is a demo of how to handle group chats & subscriptions
 class GroupChatView extends StatefulWidget {
@@ -93,7 +94,8 @@ class _GroupChatViewState extends State<GroupChatView> {
                 ),
                 onSubmitted: (text) async {
                   // Also send along an embed of 7 to test decoding on the other end
-                  await group.sendMessage(text, Uint8List.fromList([7]));
+                  await group.sendMessage(
+                      text, Uint8List.fromList([7]), userID, Uuid().v4());
                   textCtrl.clear();
                   textCtrlFocusNode.requestFocus();
                 },
