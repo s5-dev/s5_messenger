@@ -34,12 +34,14 @@ class S5Messenger {
 
   late final OpenMlsConfig config;
   late final S5 s5;
+  late Logger logger;
 
   CryptoImplementation get crypto => s5.crypto;
 
   final rust = RustLib.instance.api;
 
   Future<void> init(S5 inputS5, [String prefix = 'default']) async {
+    logger = SimpleLogger(prefix: "[s5_messenger]");
     s5 = inputS5;
     dataBox = await Hive.openBox('s5-messenger-data');
     groupsBox = await Hive.openBox('s5-messenger-groups');
@@ -62,7 +64,7 @@ class S5Messenger {
       keystoreDump:
           (keystoreBox.get('dump')?.cast<int>() ?? <int>[]) as List<int>,
     );
-    print('Initialized Rust!');
+    logger.info('Initialized Rust!');
 
     await setupIdentity();
 
@@ -80,10 +82,10 @@ class S5Messenger {
     try {
       int offsetMillis = await NTP.getNtpOffset(localTime: DateTime.now());
       timeOffset = Duration(milliseconds: offsetMillis);
-      print('timeOffset $timeOffset');
+      logger.info('timeOffset $timeOffset');
     } catch (e, st) {
-      print(e);
-      print(st);
+      logger.error(e.toString());
+      logger.error(st.toString());
     }
   }
 
@@ -92,7 +94,7 @@ class S5Messenger {
   }
 
   Future<void> saveKeyStore() async {
-    print('saveKeyStore');
+    logger.info('saveKeyStore');
     keystoreBox.put(
       'dump',
       await rust.crateApiSimpleOpenmlsKeystoreDump(config: config),
@@ -110,7 +112,7 @@ class S5Messenger {
         publicKey: base64UrlNoPaddingDecode(data['publicKey']),
         config: config,
       );
-      print('$key recovered');
+      logger.info('$key recovered');
     } else {
       final username = 'User #${Random().nextInt(1000)}';
       identity = await openmlsGenerateCredentialWithKey(
@@ -260,39 +262,46 @@ class GroupState {
       channel.publicKey,
       afterTimestamp: mls.groupCursorBox.get(groupId),
     )) {
-      print('debug1 incoming $groupId ${event.ts}');
+      Logger logger = SimpleLogger(prefix: "[s5_messenger]");
+      logger.info('debug1 incoming $groupId ${event.ts}');
       try {
         if (ignoreMessageIds.contains(event.ts)) {
-          print('debug1 ignore incoming message $groupId ${event.ts}');
+          logger.info('debug1 ignore incoming message $groupId ${event.ts}');
           await mls.groupCursorBox.put(groupId, event.ts);
           return;
         }
         if ((mls.groupCursorBox.get(groupId) ?? -1) >= event.ts) {
-          print('skipping message, unexpected ts');
+          logger.info('skipping message, unexpected ts');
           return;
         }
-        final res = await openmlsGroupProcessIncomingMessage(
-          group: group,
-          mlsMessageIn: event.data,
-          config: mls.config,
-        );
-
-        await mls.saveKeyStore();
-        if (res.isApplicationMessage) {
-          print('processed incoming message, epoch is ${res.epoch}');
-
-          final msg = MLSApplicationMessage.fromProcessIncomingMessageResponse(
-            res,
-            event.ts,
+        try {
+          final res = await openmlsGroupProcessIncomingMessage(
+            group: group,
+            mlsMessageIn: event.data,
+            config: mls.config,
           );
-          _processNewMessage(msg);
-        } else {
-          refreshGroupMemberList();
+          await mls.saveKeyStore();
+          if (res.isApplicationMessage) {
+            logger.info('processed incoming message, epoch is ${res.epoch}');
+
+            final msg =
+                MLSApplicationMessage.fromProcessIncomingMessageResponse(
+              res,
+              event.ts,
+            );
+            _processNewMessage(msg);
+          } else {
+            refreshGroupMemberList();
+          }
+        } catch (e) {
+          logger.error("Failed to decrypt message");
+          logger.error(e.toString());
         }
+
         await mls.groupCursorBox.put(groupId, event.ts);
       } catch (e, st) {
-        print(e);
-        print(st);
+        logger.error(e.toString());
+        logger.error(st.toString());
       }
     }
   }
