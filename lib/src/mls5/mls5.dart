@@ -136,7 +136,7 @@ class S5Messenger {
 
   GroupState group(String id) => groups[id]!;
 
-  Future<void> createNewGroup() async {
+  Future<GroupState> createNewGroup() async {
     final group = await openmlsGroupCreate(
       signer: identity.signer,
       credentialWithKey: identity.credentialWithKey,
@@ -147,18 +147,20 @@ class S5Messenger {
     );
     await saveKeyStore();
 
-    groups[groupId] = GroupState(
+    GroupState newGroup = GroupState(
       groupId,
       group: group,
       channel: await deriveCommunicationChannelKeyPair(groupId),
       mls: this,
     );
-    groups[groupId]!.init();
+    newGroup.init();
+    groups[groupId] = newGroup;
 
     groupsBox.put(groupId, {
       'id': groupId,
       'name': 'Group #${groupsBox.length + 1}',
     });
+    return newGroup;
   }
 
   Future<KeyPairEd25519> deriveCommunicationChannelKeyPair(String groupId) {
