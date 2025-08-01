@@ -201,8 +201,8 @@ class S5Messenger {
     return keyPackage;
   }
 
-  Future<String> acceptInviteAndJoinGroup(
-      Uint8List welcomeIn, String senderID, String messageID) async {
+  Future<String> acceptInviteAndJoinGroup(Uint8List welcomeIn, String senderID,
+      String messageID, Uint8List? embed) async {
     final group = await openmlsGroupJoin(welcomeIn: welcomeIn, config: config);
     // TODO Prevent duplicate ID overwrite attacks!
     final groupId = base64UrlNoPaddingEncode(
@@ -222,7 +222,8 @@ class S5Messenger {
       'id': groupId,
       'name': 'Group #${groupsBox.length + 1}',
     });
-    groups[groupId]!.sendMessage('joined the group', null, senderID, messageID);
+    groups[groupId]!
+        .sendMessage('joined the group', embed, senderID, messageID);
     return groupId;
   }
 }

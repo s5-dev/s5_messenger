@@ -58,9 +58,11 @@ class _GroupListViewState extends State<GroupListView> {
                   }
 
                   final groupId = await s5messenger.acceptInviteAndJoinGroup(
-                      base64UrlNoPaddingDecode(welcome.substring(25)),
-                      userID,
-                      Uuid().v4());
+                    base64UrlNoPaddingDecode(welcome.substring(25)),
+                    userID,
+                    Uuid().v4(),
+                    null,
+                  );
                   s5messenger.messengerState.groupId = groupId;
                   s5messenger.messengerState.update();
                 },
