@@ -30,6 +30,8 @@ dependencies:
 
 See [example](./example/)
 
+> ⚠ `cargo` is required to build this project. Make sure to install first [here](https://www.rust-lang.org/tools/install)
+
 To test the library:
 
 ```bash
