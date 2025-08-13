@@ -74,7 +74,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
           'wss://z2DdbxV4xyoqWck5pXXJdVzRnwQC6Gbv6o7xDvyZvzKUfuj@s5.vup.dev/s5/p2p',
           'wss://z2DWuWNZcdSyZLpXFK2uCU3haaWMXrDAgxzv17sDEMHstZb@s5.garden/s5/p2p',
         ],
-        logger: SilentLogger(),
+        //logger: SilentLogger(), // Enable this to get rid of logs
         persistFilePath: path.join(
             (await getApplicationSupportDirectory()).path, "persist.json"),
       );
