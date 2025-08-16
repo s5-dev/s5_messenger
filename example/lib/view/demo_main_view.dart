@@ -33,6 +33,11 @@ class MLS5DemoAppView extends StatelessWidget {
                         s5messenger.messengerState.groupId!,
                       ),
                     )
+                  ] else ...[
+                    VerticalDivider(
+                      width: 1,
+                    ),
+                    Container(),
                   ]
                   /*  Center(
                   child: ElevatedButton(

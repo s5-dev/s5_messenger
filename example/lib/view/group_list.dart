@@ -37,10 +37,16 @@ class _GroupListViewState extends State<GroupListView> {
                       // Handle menu item selection
                       switch (value) {
                         case 'leave':
-                          // Action for "Delete"
-                          s5messenger
-                              .leaveGroup(s5messenger.group(group['id']));
+                          final currentGroupId = group['id'];
+                          // Clear the current group selection if it's the one being deleted
+                          if (s5messenger.messengerState.groupId ==
+                              currentGroupId) {
+                            s5messenger.messengerState.groupId = null;
+                            s5messenger.messengerState.update();
+                          }
                           // Leave the group
+                          await s5messenger
+                              .leaveGroup(s5messenger.group(currentGroupId));
                           break;
                         case 'rename':
                           final res = await showTextInputDialog(
