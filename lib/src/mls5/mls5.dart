@@ -38,7 +38,7 @@ class S5Messenger {
 
   CryptoImplementation get crypto => s5.crypto;
 
-  final rust = RustLib.instance.api;
+  final RustLibApi rust = RustLib.instance.api;
 
   Future<void> init(S5 inputS5, [String prefix = 'default']) async {
     logger = SimpleLogger(prefix: "[s5_messenger]");
@@ -136,7 +136,7 @@ class S5Messenger {
 
   GroupState group(String id) => groups[id]!;
 
-  Future<GroupState> createNewGroup() async {
+  Future<GroupState> createNewGroup(String? name) async {
     final group = await openmlsGroupCreate(
       signer: identity.signer,
       credentialWithKey: identity.credentialWithKey,
@@ -158,9 +158,20 @@ class S5Messenger {
 
     groupsBox.put(groupId, {
       'id': groupId,
-      'name': 'Group #${groupsBox.length + 1}',
+      'name': (name != null) ? name : 'Group #${groupsBox.length + 1}',
     });
+
+    messengerState.update();
+
     return newGroup;
+  }
+
+  Future<void> leaveGroup(GroupState groupState) async {
+    await openmlsGroupLeave(
+        group: groupState.group, signer: identity.signer, config: config);
+    groups.remove(groupState.groupId);
+    groupsBox.delete(groupState.groupId);
+    messengerState.update();
   }
 
   Future<KeyPairEd25519> deriveCommunicationChannelKeyPair(String groupId) {

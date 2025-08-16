@@ -86,6 +86,13 @@ Future<MlsGroup> openmlsGroupLoad(
         {required List<int> id, required OpenMlsConfig config}) =>
     RustLib.instance.api.crateApiSimpleOpenmlsGroupLoad(id: id, config: config);
 
+Future<Uint8List> openmlsGroupLeave(
+        {required MlsGroup group,
+        required SignatureKeyPair signer,
+        required OpenMlsConfig config}) =>
+    RustLib.instance.api.crateApiSimpleOpenmlsGroupLeave(
+        group: group, signer: signer, config: config);
+
 Future<List<GroupMember>> openmlsGroupListMembers({required MlsGroup group}) =>
     RustLib.instance.api.crateApiSimpleOpenmlsGroupListMembers(group: group);
 

@@ -456,6 +456,32 @@ pub fn openmls_group_load(id: Vec<u8>, config: &OpenMLSConfig) -> RwLock<MlsGrou
     RwLock::new(group)
 }
 
+pub fn openmls_group_leave(
+    group: &RwLock<MlsGroup>,
+    signer: &SignatureKeyPair,
+    config: &OpenMLSConfig,
+) -> Vec<u8> {
+    // 1. Get a mutable reference to the group. We need this because `leave_group`
+    //    creates a proposal and thus modifies the internal group state.
+    let mut group_rw = match group.write() {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
+    };
+
+    // 2. Call the `leave_group` method. It takes the backend and a signer to
+    //    create and sign the leave proposal as a Commit message.
+    let mls_message_out = group_rw
+        .leave_group(&config.backend, &*signer)
+        .expect("Error creating leave group message");
+
+
+    // 3. Serialize the resulting MlsMessageOut to bytes so it can be sent
+    //    over the FFI boundary to your app and then to other group members.
+    mls_message_out
+        .tls_serialize_detached()
+        .expect("Error serializing leave message")
+}
+
 pub struct GroupMember {
     pub identity: Vec<u8>,
     pub index: u32,

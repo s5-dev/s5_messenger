@@ -15,91 +15,137 @@ class GroupListView extends StatefulWidget {
 class _GroupListViewState extends State<GroupListView> {
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: [
-        for (final group in s5messenger.groupsBox.values)
-          ListTile(
-            onTap: () {
-              s5messenger.messengerState.groupId = group['id'];
-              s5messenger.messengerState.update();
-            },
-            onLongPress: () async {
-              final res = await showTextInputDialog(
-                context: context,
-                textFields: [
-                  DialogTextField(hintText: 'Edit Group Name (local)'),
-                ],
-              );
-              if (res == null) return;
-              s5messenger.group(group['id']).rename(res.first);
-            },
-            title: Text(group['name']),
-            subtitle: Text(group['id']),
-            enabled: s5messenger.groups.isNotEmpty,
-            selected: s5messenger.messengerState.groupId == group['id'],
-            selectedTileColor: Theme.of(context).colorScheme.primaryContainer,
-          ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
+    return StreamBuilder(
+        stream: s5messenger.messengerState.stream,
+        builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+          return ListView(
             children: [
-              ElevatedButton(
-                onPressed: () async {
-                  final res = await showTextInputDialog(
-                    context: context,
-                    textFields: [
-                      DialogTextField(hintText: 's5messenger-group-invite:')
+              for (final group in s5messenger.groupsBox.values)
+                ListTile(
+                  onTap: () {
+                    s5messenger.messengerState.groupId = group['id'];
+                    s5messenger.messengerState.update();
+                  },
+                  title: Text(group['name']),
+                  subtitle: Text(group['id']),
+                  enabled: s5messenger.groups.isNotEmpty,
+                  selected: s5messenger.messengerState.groupId == group['id'],
+                  selectedTileColor:
+                      Theme.of(context).colorScheme.primaryContainer,
+                  trailing: PopupMenuButton<String>(
+                    onSelected: (String value) async {
+                      // Handle menu item selection
+                      switch (value) {
+                        case 'leave':
+                          // Action for "Delete"
+                          s5messenger
+                              .leaveGroup(s5messenger.group(group['id']));
+                          // Leave the group
+                          break;
+                        case 'rename':
+                          final res = await showTextInputDialog(
+                            context: context,
+                            textFields: [
+                              DialogTextField(
+                                  hintText: 'Edit Group Name (local)'),
+                            ],
+                          );
+                          if (res == null) return;
+                          s5messenger.group(group['id']).rename(res.first);
+                      }
+                    },
+                    itemBuilder: (BuildContext context) =>
+                        <PopupMenuEntry<String>>[
+                      const PopupMenuItem<String>(
+                        value: 'rename',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit),
+                            Center(
+                              child: Text('Rename'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'leave',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete),
+                            Center(
+                              child: Text('Leave'),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
-                  );
-                  if (res == null) return;
-                  final String welcome = res.first;
-                  if (!welcome.startsWith('s5messenger-group-invite:')) {
-                    throw 'Group invite has an invalid prefix!';
-                  }
-
-                  final groupId = await s5messenger.acceptInviteAndJoinGroup(
-                    base64UrlNoPaddingDecode(welcome.substring(25)),
-                    userID,
-                    Uuid().v4(),
-                    null,
-                  );
-                  s5messenger.messengerState.groupId = groupId;
-                  s5messenger.messengerState.update();
-                },
-                child: Text(
-                  'Join Group',
+                    icon: Icon(Icons.more_vert), // Icon to trigger the menu
+                  ),
                 ),
-              ),
-              SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: () async {
-                  await s5messenger.createNewGroup();
-                  setState(() {});
-                },
-                child: Text(
-                  'Create Group',
-                ),
-              ),
-              SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: () async {
-                  final kp = await s5messenger.createKeyPackage();
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        final res = await showTextInputDialog(
+                          context: context,
+                          textFields: [
+                            DialogTextField(
+                                hintText: 's5messenger-group-invite:')
+                          ],
+                        );
+                        if (res == null) return;
+                        final String welcome = res.first;
+                        if (!welcome.startsWith('s5messenger-group-invite:')) {
+                          throw 'Group invite has an invalid prefix!';
+                        }
 
-                  Clipboard.setData(
-                    ClipboardData(
-                      text:
-                          's5-messenger-key-package:${base64UrlNoPaddingEncode(kp)}',
+                        final groupId =
+                            await s5messenger.acceptInviteAndJoinGroup(
+                          base64UrlNoPaddingDecode(welcome.substring(25)),
+                          userID,
+                          Uuid().v4(),
+                          null,
+                        );
+                        s5messenger.messengerState.groupId = groupId;
+                        s5messenger.messengerState.update();
+                      },
+                      child: Text(
+                        'Join Group',
+                      ),
                     ),
-                  );
-                },
-                child: Text(
-                  'Copy KeyPackage',
+                    SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await s5messenger.createNewGroup(null);
+                        setState(() {});
+                      },
+                      child: Text(
+                        'Create Group',
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final kp = await s5messenger.createKeyPackage();
+
+                        Clipboard.setData(
+                          ClipboardData(
+                            text:
+                                's5-messenger-key-package:${base64UrlNoPaddingEncode(kp)}',
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Copy KeyPackage',
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
-          ),
-        ),
-      ],
-    );
+          );
+        });
   }
 }

@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 856242009;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1601393097;
 
 // Section: executor
 
@@ -1405,6 +1405,81 @@ fn wire__crate__api__simple__openmls_group_join_impl(
         },
     )
 }
+fn wire__crate__api__simple__openmls_group_leave_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "openmls_group_leave",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_group = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RwLock<MlsGroup>>,
+            >>::sse_decode(&mut deserializer);
+            let api_signer = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SignatureKeyPair>,
+            >>::sse_decode(&mut deserializer);
+            let api_config = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<OpenMLSConfig>,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let mut api_group_guard = None;
+                    let mut api_signer_guard = None;
+                    let mut api_config_guard = None;
+                    let decode_indices_ =
+                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_group, 0, false,
+                            ),
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_signer,
+                                1,
+                                false,
+                            ),
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_config,
+                                2,
+                                false,
+                            ),
+                        ]);
+                    for i in decode_indices_ {
+                        match i {
+                            0 => api_group_guard = Some(api_group.lockable_decode_sync_ref()),
+                            1 => api_signer_guard = Some(api_signer.lockable_decode_sync_ref()),
+                            2 => api_config_guard = Some(api_config.lockable_decode_sync_ref()),
+                            _ => unreachable!(),
+                        }
+                    }
+                    let api_group_guard = api_group_guard.unwrap();
+                    let api_signer_guard = api_signer_guard.unwrap();
+                    let api_config_guard = api_config_guard.unwrap();
+                    let output_ok = Result::<_, ()>::Ok(crate::api::simple::openmls_group_leave(
+                        &*api_group_guard,
+                        &*api_signer_guard,
+                        &*api_config_guard,
+                    ))?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 fn wire__crate__api__simple__openmls_group_list_members_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -2262,31 +2337,32 @@ fn pde_ffi_dispatcher_primary_impl(
             data_len,
         ),
         26 => wire__crate__api__simple__openmls_group_join_impl(port, ptr, rust_vec_len, data_len),
-        27 => wire__crate__api__simple__openmls_group_list_members_impl(
+        27 => wire__crate__api__simple__openmls_group_leave_impl(port, ptr, rust_vec_len, data_len),
+        28 => wire__crate__api__simple__openmls_group_list_members_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        28 => wire__crate__api__simple__openmls_group_load_impl(port, ptr, rust_vec_len, data_len),
-        29 => wire__crate__api__simple__openmls_group_process_incoming_message_impl(
+        29 => wire__crate__api__simple__openmls_group_load_impl(port, ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__simple__openmls_group_process_incoming_message_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        30 => wire__crate__api__simple__openmls_group_save_impl(port, ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__simple__openmls_init_config_impl(port, ptr, rust_vec_len, data_len),
-        32 => {
+        31 => wire__crate__api__simple__openmls_group_save_impl(port, ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__simple__openmls_init_config_impl(port, ptr, rust_vec_len, data_len),
+        33 => {
             wire__crate__api__simple__openmls_keystore_dump_impl(port, ptr, rust_vec_len, data_len)
         }
-        33 => wire__crate__api__simple__openmls_recover_credential_with_key_impl(
+        34 => wire__crate__api__simple__openmls_recover_credential_with_key_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        34 => wire__crate__api__simple__openmls_signer_get_public_key_impl(
+        35 => wire__crate__api__simple__openmls_signer_get_public_key_impl(
             port,
             ptr,
             rust_vec_len,
