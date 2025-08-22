@@ -226,6 +226,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       dynamic raw);
 
   @protected
+  (
+    MlsGroup,
+    Uint8List
+  ) dco_decode_record_auto_owned_rust_opaque_flutter_rust_bridgefor_generated_rust_auto_opaque_inner_rw_lock_mls_group_list_prim_u_8_strict(
+      dynamic raw);
+
+  @protected
   int dco_decode_u_32(dynamic raw);
 
   @protected
@@ -404,6 +411,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ProcessIncomingMessageResponse sse_decode_process_incoming_message_response(
+      SseDeserializer deserializer);
+
+  @protected
+  (
+    MlsGroup,
+    Uint8List
+  ) sse_decode_record_auto_owned_rust_opaque_flutter_rust_bridgefor_generated_rust_auto_opaque_inner_rw_lock_mls_group_list_prim_u_8_strict(
       SseDeserializer deserializer);
 
   @protected
@@ -591,6 +605,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_process_incoming_message_response(
       ProcessIncomingMessageResponse self, SseSerializer serializer);
+
+  @protected
+  void
+      sse_encode_record_auto_owned_rust_opaque_flutter_rust_bridgefor_generated_rust_auto_opaque_inner_rw_lock_mls_group_list_prim_u_8_strict(
+          (MlsGroup, Uint8List) self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);

@@ -237,6 +237,43 @@ class S5Messenger {
         .sendMessage('joined the group', embed, senderID, messageID);
     return groupId;
   }
+
+  Future<String> acceptInviteAndJoinGroupExternalCommit(
+      Uint8List verifiableGroupInfoIn,
+      String senderID,
+      String messageID,
+      Uint8List? embed) async {
+    final (MlsGroup group, Uint8List commitToPropagate) =
+        await openmlsGroupJoinByExternalCommit(
+            verifiableGroupInfoIn: verifiableGroupInfoIn,
+            signer: identity.signer,
+            credentialWithKey: identity.credentialWithKey,
+            config: config);
+    // TODO: Prevent duplicate ID overwrite attacks!
+    final String groupId = base64UrlNoPaddingEncode(
+      await openmlsGroupSave(group: group, config: config),
+    );
+    await saveKeyStore();
+
+    groups[groupId] = GroupState(
+      groupId,
+      group: group,
+      channel: await deriveCommunicationChannelKeyPair(groupId),
+      mls: this,
+    );
+    groups[groupId]!.init();
+
+    groupsBox.put(groupId, {
+      'id': groupId,
+      'name': 'Group #${groupsBox.length + 1}',
+    });
+
+    groups[groupId]!.sendMessageToStreamChannel(commitToPropagate);
+    // TODO: This is a supid wait, should wait for new incoming messages before sending join message
+    groups[groupId]!
+        .sendMessage('joined the group', embed, senderID, messageID);
+    return groupId;
+  }
 }
 
 class GroupState {
@@ -397,7 +434,7 @@ class GroupState {
   }
 
   Future<String> addMemberToGroup(Uint8List keyPackage) async {
-    final res = await openmlsGroupAddMember(
+    final MLSGroupAddMembersResponse res = await openmlsGroupAddMember(
       group: group,
       signer: mls.identity.signer,
       keyPackage: keyPackage,
@@ -414,6 +451,12 @@ class GroupState {
 
     /*     return 's5messenger-group-invite:${base64UrlNoPaddingEncode(groupChannels[groupId]!.publicKey)}/$ts/${base64UrlNoPaddingEncode(res.welcomeOut)}'; */
     return 's5messenger-group-invite:${base64UrlNoPaddingEncode(res.welcomeOut)}';
+  }
+
+  Future<String> generateExternalCommitInvite() async {
+    final Uint8List res = await openmlsGroupExportGroupInfo(
+        group: group, signer: mls.identity.signer, config: mls.config);
+    return base64UrlNoPaddingEncode(res);
   }
 
   Future<void> sendMessage(

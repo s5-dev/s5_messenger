@@ -97,19 +97,15 @@ class _GroupListViewState extends State<GroupListView> {
                         final res = await showTextInputDialog(
                           context: context,
                           textFields: [
-                            DialogTextField(
-                                hintText: 's5messenger-group-invite:')
+                            DialogTextField(hintText: 'external commit group:')
                           ],
                         );
                         if (res == null) return;
                         final String welcome = res.first;
-                        if (!welcome.startsWith('s5messenger-group-invite:')) {
-                          throw 'Group invite has an invalid prefix!';
-                        }
 
-                        final groupId =
-                            await s5messenger.acceptInviteAndJoinGroup(
-                          base64UrlNoPaddingDecode(welcome.substring(25)),
+                        final groupId = await s5messenger
+                            .acceptInviteAndJoinGroupExternalCommit(
+                          base64UrlNoPaddingDecode(welcome),
                           userID,
                           Uuid().v4(),
                           null,
@@ -129,22 +125,6 @@ class _GroupListViewState extends State<GroupListView> {
                       },
                       child: Text(
                         'Create Group',
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final kp = await s5messenger.createKeyPackage();
-
-                        Clipboard.setData(
-                          ClipboardData(
-                            text:
-                                's5-messenger-key-package:${base64UrlNoPaddingEncode(kp)}',
-                          ),
-                        );
-                      },
-                      child: Text(
-                        'Copy KeyPackage',
                       ),
                     ),
                   ],

@@ -149,6 +149,29 @@ class _GroupChatViewState extends State<GroupChatView> {
                         'Invite User',
                       ),
                     ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final String inviteToken =
+                            await group.generateExternalCommitInvite();
+                        logger.info("Invite token: $inviteToken");
+                        Clipboard.setData(
+                          ClipboardData(
+                            text: inviteToken,
+                          ),
+                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Copied invite token to clipboard'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                      child: Text(
+                        'Generate Group Info',
+                      ),
+                    ),
                   ],
                 ),
               ),

@@ -70,6 +70,24 @@ Future<MlsGroup> openmlsGroupJoin(
     RustLib.instance.api
         .crateApiSimpleOpenmlsGroupJoin(welcomeIn: welcomeIn, config: config);
 
+Future<Uint8List> openmlsGroupExportGroupInfo(
+        {required MlsGroup group,
+        required SignatureKeyPair signer,
+        required OpenMlsConfig config}) =>
+    RustLib.instance.api.crateApiSimpleOpenmlsGroupExportGroupInfo(
+        group: group, signer: signer, config: config);
+
+Future<(MlsGroup, Uint8List)> openmlsGroupJoinByExternalCommit(
+        {required List<int> verifiableGroupInfoIn,
+        required SignatureKeyPair signer,
+        required CredentialWithKey credentialWithKey,
+        required OpenMlsConfig config}) =>
+    RustLib.instance.api.crateApiSimpleOpenmlsGroupJoinByExternalCommit(
+        verifiableGroupInfoIn: verifiableGroupInfoIn,
+        signer: signer,
+        credentialWithKey: credentialWithKey,
+        config: config);
+
 Future<ProcessIncomingMessageResponse> openmlsGroupProcessIncomingMessage(
         {required MlsGroup group,
         required List<int> mlsMessageIn,

@@ -1,4 +1,5 @@
 use flutter_rust_bridge::frb;
+use openmls::prelude::group_info::VerifiableGroupInfo;
 use openmls::prelude::tls_codec::{Deserialize, Serialize};
 pub use openmls::prelude::*;
 pub use openmls_basic_credential::SignatureKeyPair;
@@ -6,8 +7,8 @@ use openmls_memory_storage::MemoryStorage;
 use openmls_rust_crypto::RustCrypto;
 pub use std::borrow::Borrow;
 use std::io::Cursor;
-pub use std::sync::RwLock;
 use std::sync::Arc;
+pub use std::sync::RwLock;
 
 #[flutter_rust_bridge::frb(sync)] // Synchronous mode for simplicity of the demo
 pub fn greet(name: String) -> String {
@@ -209,6 +210,7 @@ pub struct MLSGroupAddMembersResponse {
     // pub ratchet_tree: Vec<u8>,
 }
 
+// Add member from welcome
 pub fn openmls_group_add_member(
     group: &RwLock<MlsGroup>,
     signer: &SignatureKeyPair,
@@ -271,6 +273,7 @@ pub fn openmls_group_create_message(
         .expect("Error serializing welcome")
 }
 
+// This is for joining with a welcome message
 pub fn openmls_group_join(
     welcome_in: Vec<u8>,
     // ratchet_tree: Vec<u8>,
@@ -289,7 +292,7 @@ pub fn openmls_group_join(
 
     let group = StagedWelcome::new_from_welcome(
         &config.backend,
-        &config.mls_group_create_config.join_config(),
+        config.mls_group_create_config.join_config(),
         welcome,
         None,
     )
@@ -309,6 +312,76 @@ pub fn openmls_group_join(
     )
     .expect("Error joining group from Welcome"); */
     RwLock::new(group)
+}
+
+// For doing external commit invite
+// This function will be called by an existing group member to create an invite
+pub fn openmls_group_export_group_info(
+    group: &RwLock<MlsGroup>,
+    signer: &SignatureKeyPair,
+    config: &OpenMLSConfig,
+) -> Vec<u8> {
+    let group_ro = match group.read() {
+        Ok(guard) => guard,
+        Err(poisoned) => poisoned.into_inner(),
+    };
+
+    let mls_message_out: MlsMessageOut = group_ro
+        .export_group_info(&config.backend, signer, true) // `true` includes the ratchet tree extension
+        .expect("Cannot export group info");
+
+    let message_serialized: Vec<u8> = mls_message_out
+        .to_bytes()
+        .expect("Cannot marshal mls message to bytes");
+
+    message_serialized
+}
+
+// This is for joining with an external commit, so single step pairng baby!
+// Return is a typle because frb gets mad and trys to clone the MlsGroup if put
+// in a struct which isn't possible
+pub fn openmls_group_join_by_external_commit(
+    verifiable_group_info_in: Vec<u8>,
+    signer: &SignatureKeyPair,
+    credential_with_key: &CredentialWithKey,
+    config: &OpenMLSConfig,
+) -> (RwLock<MlsGroup>, Vec<u8>) {
+    // Deserialize the VerifiableGroupInfo received from the existing member
+    let mls_message_in: MlsMessageIn =
+        MlsMessageIn::tls_deserialize_exact(&verifiable_group_info_in)
+            .expect("Failed to deserialize mls message in");
+
+    let verifiable_group_info = {
+        match mls_message_in.extract() {
+            MlsMessageBodyIn::GroupInfo(verifiable_group_info) => verifiable_group_info,
+            other => panic!("Expected `MlsMessageBodyIn::GroupInfo`, got {other:?}."),
+        }
+    };
+
+    let join_config = config.mls_group_create_config.join_config();
+
+    let (mut group, commit_message_out, _group_info) = MlsGroup::join_by_external_commit(
+        &config.backend,
+        signer,
+        None,
+        verifiable_group_info,
+        join_config,
+        None,
+        None,
+        &[],
+        credential_with_key.clone(),
+    )
+    .expect("Error joining group by external commit");
+
+    group
+        .merge_pending_commit(&config.backend)
+        .expect("Error merging pending commit for new member");
+
+    let commit_message_bytes = commit_message_out
+        .tls_serialize_detached()
+        .expect("Could not serialize commit message");
+
+    (RwLock::new(group), commit_message_bytes)
 }
 
 pub struct ProcessIncomingMessageResponse {
@@ -346,7 +419,6 @@ pub fn openmls_group_process_incoming_message(
         .tls_serialize_detached()
         .expect("failed to serialize sender");
     let processed_message_epoch: u64 = processed_message.epoch().as_u64();
-
 
     match processed_message.into_content() {
         ProcessedMessageContent::ApplicationMessage(application_message) => {
@@ -391,8 +463,21 @@ pub fn openmls_group_process_incoming_message(
         ProcessedMessageContent::ExternalJoinProposalMessage(_external_proposal_ptr) => {
             // intentionally left blank.
         }
-        ProcessedMessageContent::StagedCommitMessage(_) => {
-          /* commit_ptr   let mut remove_proposal: bool = false;
+        ProcessedMessageContent::StagedCommitMessage(staged_commit) => {
+            // This makes sure to load up the new commit if it comes in
+            group_rw
+                .merge_staged_commit(&config.backend, *staged_commit)
+                .expect("failed to merge staged commit");
+
+            return ProcessIncomingMessageResponse {
+                is_application_message: false,
+                application_message: vec![],
+                identity: processed_message_credential.serialized_content().to_vec(),
+                sender: processed_message_sender,
+                epoch: processed_message_epoch, // now equals the new epoch
+            };
+
+            /* commit_ptr   let mut remove_proposal: bool = false;
             if commit_ptr.self_removed() {
                 remove_proposal = true;
             }
@@ -474,7 +559,6 @@ pub fn openmls_group_leave(
         .leave_group(&config.backend, &*signer)
         .expect("Error creating leave group message");
 
-
     // 3. Serialize the resulting MlsMessageOut to bytes so it can be sent
     //    over the FFI boundary to your app and then to other group members.
     mls_message_out
@@ -546,7 +630,6 @@ pub fn openmls_group_list_members(group: &RwLock<MlsGroup>) -> Vec<GroupMember> 
 
     // Add other methods from the Signer trait and implement them similarly
 } */
-
 
 // Custom struct for the KeyStore to have more control over it (export/restore)
 /*
@@ -637,4 +720,3 @@ impl OpenMlsCryptoProvider for MyOpenMlsRustCrypto {
     }
 }
  */
-
