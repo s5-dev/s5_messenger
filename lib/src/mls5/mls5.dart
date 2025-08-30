@@ -316,17 +316,9 @@ class GroupState {
       Logger logger = SimpleLogger(prefix: "[s5_messenger]");
       logger.info('debug1 incoming $groupId ${event.ts}');
       try {
-        if (ignoreMessageIds.contains(event.ts)) {
-          logger.info('debug1 ignore incoming message $groupId ${event.ts}');
-          await mls.groupCursorBox.put(groupId, event.ts);
-          return;
-        }
-        if ((mls.groupCursorBox.get(groupId) ?? -1) >= event.ts) {
-          logger.info('skipping message, unexpected ts');
-          return;
-        }
         try {
-          final res = await openmlsGroupProcessIncomingMessage(
+          final ProcessIncomingMessageResponse res =
+              await openmlsGroupProcessIncomingMessage(
             group: group,
             mlsMessageIn: event.data,
             config: mls.config,
@@ -335,7 +327,7 @@ class GroupState {
           if (res.isApplicationMessage) {
             logger.info('processed incoming message, epoch is ${res.epoch}');
 
-            final msg =
+            final MLSApplicationMessage msg =
                 MLSApplicationMessage.fromProcessIncomingMessageResponse(
               res,
               event.ts,
@@ -442,7 +434,7 @@ class GroupState {
     );
     await mls.saveKeyStore();
 
-    final ts = await sendMessageToStreamChannel(res.mlsMessageOut);
+    final int _ = await sendMessageToStreamChannel(res.mlsMessageOut);
     await openmlsGroupSave(group: group, config: mls.config);
 
     refreshGroupMemberList();
@@ -461,21 +453,21 @@ class GroupState {
 
   Future<void> sendMessage(
       String text, Uint8List? embed, String senderID, String messageID) async {
-    final msg = TextMessage(
+    final TextMessage msg = TextMessage(
         text: text,
         ts: DateTime.now().millisecondsSinceEpoch,
         embed: embed,
         senderId: senderID,
         messageId: messageID);
-    final message = Uint8List.fromList(msg.prefix + msg.serialize());
+    final Uint8List message = Uint8List.fromList(msg.prefix + msg.serialize());
 
-    final payload = await openmlsGroupCreateMessage(
+    final Uint8List payload = await openmlsGroupCreateMessage(
       group: group,
       signer: mls.identity.signer,
       message: message,
       config: mls.config,
     );
-    final ts = await sendMessageToStreamChannel(payload);
+    final int ts = await sendMessageToStreamChannel(payload);
     await mls.saveKeyStore();
 
     _processNewMessage(
