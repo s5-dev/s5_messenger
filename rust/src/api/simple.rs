@@ -1,5 +1,4 @@
 use flutter_rust_bridge::frb;
-use openmls::prelude::group_info::VerifiableGroupInfo;
 use openmls::prelude::tls_codec::{Deserialize, Serialize};
 pub use openmls::prelude::*;
 pub use openmls_basic_credential::SignatureKeyPair;
@@ -77,11 +76,11 @@ pub fn openmls_init_config(keystore_dump: Vec<u8>) -> OpenMLSConfig {
     };
 
     OpenMLSConfig {
-        ciphersuite: ciphersuite,
-        backend: backend,
+        ciphersuite,
+        backend,
         credential_type: CredentialType::Basic,
         signature_algorithm: ciphersuite.signature_algorithm(),
-        mls_group_create_config: mls_group_create_config,
+        mls_group_create_config,
     }
 }
 
