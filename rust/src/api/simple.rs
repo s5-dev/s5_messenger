@@ -1,13 +1,14 @@
+use anyhow::{anyhow, Result};
 use flutter_rust_bridge::frb;
 use openmls::prelude::tls_codec::{Deserialize, Serialize};
 pub use openmls::prelude::*;
 pub use openmls_basic_credential::SignatureKeyPair;
-use openmls_memory_storage::MemoryStorage;
-use openmls_rust_crypto::RustCrypto;
+pub use openmls_rust_crypto::RustCrypto;
+use openmls_sqlite_storage::SqliteStorageProvider;
+use rusqlite::Connection;
 pub use std::borrow::Borrow;
-use std::io::Cursor;
-use std::sync::Arc;
 pub use std::sync::RwLock;
+use std::{any, sync::Arc};
 
 // TODO: Move away from sync bridge
 #[flutter_rust_bridge::frb(sync)]
@@ -29,61 +30,25 @@ pub struct MLSCredential {
 #[frb(opaque)]
 pub struct OpenMLSConfig {
     pub ciphersuite: Ciphersuite,
-    pub backend: MyOpenMlsRustCrypto,
+    pub crypto: Arc<RustCrypto>,
+    pub db_path: String, // sqlite db path for keystore
     pub credential_type: CredentialType,
     pub signature_algorithm: SignatureScheme,
     pub mls_group_create_config: MlsGroupCreateConfig,
 }
 
-pub fn openmls_init_config(keystore_dump: Vec<u8>) -> OpenMLSConfig {
-    let ciphersuite = Ciphersuite::MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519;
-
-    let mls_group_create_config = MlsGroupCreateConfig::builder()
-        .sender_ratchet_configuration(SenderRatchetConfiguration::new(
-            50,   // out_of_order_tolerance
-            1000, // maximum_forward_distance
-        ))
-        .use_ratchet_tree_extension(true)
-        .max_past_epochs(5)
-        // TODO wire_format_policy
-        .build();
-
-    let backend = if !keystore_dump.is_empty() {
-        println!("[keystore] load existing");
-        let mut cursor = Cursor::new(keystore_dump);
-        MyOpenMlsRustCrypto {
-            crypto: RustCrypto::default().into(),
-            key_store: MemoryStorage::deserialize(&mut cursor).unwrap(),
-        }
-    } else {
-        println!("[keystore] init empty");
-        MyOpenMlsRustCrypto::default()
-    };
-
-    OpenMLSConfig {
-        ciphersuite,
-        backend,
-        credential_type: CredentialType::Basic,
-        signature_algorithm: ciphersuite.signature_algorithm(),
-        mls_group_create_config,
-    }
-}
-
-#[derive(Default, Clone)]
-#[frb(opaque)]
 pub struct MyOpenMlsRustCrypto {
     crypto: Arc<RustCrypto>,
-    key_store: MemoryStorage,
+    storage: SqliteStorageProvider<BinCodec, Connection>,
 }
 
-#[frb(opaque)]
 impl OpenMlsProvider for MyOpenMlsRustCrypto {
     type CryptoProvider = RustCrypto;
     type RandProvider = RustCrypto;
-    type StorageProvider = MemoryStorage;
+    type StorageProvider = SqliteStorageProvider<BinCodec, Connection>;
 
     fn storage(&self) -> &Self::StorageProvider {
-        &self.key_store
+        &self.storage
     }
 
     fn crypto(&self) -> &Self::CryptoProvider {
@@ -95,10 +60,65 @@ impl OpenMlsProvider for MyOpenMlsRustCrypto {
     }
 }
 
-pub fn openmls_keystore_dump(config: &OpenMLSConfig) -> Vec<u8> {
-    let mut bytes = vec![];
-    let _ = config.backend.storage().serialize(&mut bytes);
-    bytes
+/// Binary codec for efficient serialization
+#[derive(Default)]
+#[frb(opaque)]
+pub struct BinCodec {}
+
+impl openmls_sqlite_storage::Codec for BinCodec {
+    type Error = postcard::Error;
+
+    fn to_vec<T: serde::Serialize>(value: &T) -> std::result::Result<Vec<u8>, Self::Error> {
+        postcard::to_allocvec(value)
+    }
+
+    fn from_slice<T: serde::de::DeserializeOwned>(
+        slice: &[u8],
+    ) -> std::result::Result<T, Self::Error> {
+        postcard::from_bytes(slice)
+    }
+}
+
+// reconnecting the database every single time isn't ideal, but you really cannot pass a refernece
+// of sqlite back and forth between the rust & dart sides of it, so this is the best idea I have
+// for now
+#[frb(ignore)]
+pub fn get_backend(db_path: String, crypto: Arc<RustCrypto>) -> MyOpenMlsRustCrypto {
+    let conn: Connection = Connection::open(&db_path).unwrap();
+    let storage: SqliteStorageProvider<BinCodec, Connection> = SqliteStorageProvider::new(conn);
+    MyOpenMlsRustCrypto { crypto, storage }
+}
+
+pub fn openmls_init_config(db_path: String) -> OpenMLSConfig {
+    let ciphersuite = Ciphersuite::MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519;
+
+    // set up the MLS config
+    let mls_group_create_config = MlsGroupCreateConfig::builder()
+        .sender_ratchet_configuration(SenderRatchetConfiguration::new(
+            50,   // out_of_order_tolerance
+            1000, // maximum_forward_distance
+        ))
+        .use_ratchet_tree_extension(true)
+        .max_past_epochs(5)
+        // TODO wire_format_policy
+        .build();
+
+    // init keystore here
+    let crypto: Arc<RustCrypto> = Arc::new(RustCrypto::default());
+    let mut backend: MyOpenMlsRustCrypto = get_backend(db_path.clone(), crypto.clone());
+    backend
+        .storage
+        .run_migrations()
+        .expect("Failed to init the db"); // always run migrations
+
+    OpenMLSConfig {
+        ciphersuite,
+        crypto,
+        db_path,
+        credential_type: CredentialType::Basic,
+        signature_algorithm: ciphersuite.signature_algorithm(),
+        mls_group_create_config,
+    }
 }
 
 pub fn openmls_generate_credential_with_key(
@@ -109,10 +129,12 @@ pub fn openmls_generate_credential_with_key(
     let signature_keys = SignatureKeyPair::new(config.signature_algorithm)
         .expect("Error generating a signature key pair.");
 
+    let backend: MyOpenMlsRustCrypto = get_backend(config.db_path.clone(), config.crypto.clone());
+
     // Store the signature key into the key store so OpenMLS has access
     // to it.
     signature_keys
-        .store(config.backend.storage())
+        .store(backend.storage())
         .expect("Error storing signature keys in key store.");
 
     MLSCredential {
@@ -132,23 +154,24 @@ pub fn openmls_recover_credential_with_key(
     identity: Vec<u8>,
     public_key: Vec<u8>,
     config: &OpenMLSConfig,
-) -> MLSCredential {
+) -> Result<MLSCredential, anyhow::Error> {
     let credential = Credential::new(config.credential_type, identity);
 
-    let signature_keys = SignatureKeyPair::read(
-        config.backend.storage(),
-        &public_key,
-        config.signature_algorithm,
-    )
-    .expect("Error generating a signature key pair.");
+    let backend: MyOpenMlsRustCrypto = get_backend(config.db_path.clone(), config.crypto.clone());
 
-    MLSCredential {
+    let signature_keys =
+        SignatureKeyPair::read(backend.storage(), &public_key, config.signature_algorithm)
+            .ok_or_else(|| {
+                anyhow::anyhow!("Signature not found, are you sure you migrated the DB properly?")
+            })?;
+
+    Ok(MLSCredential {
         credential_with_key: CredentialWithKey {
             credential,
             signature_key: signature_keys.public().into(),
         },
         signer: signature_keys,
-    }
+    })
 }
 
 // A helper to create key package bundles.
@@ -157,11 +180,13 @@ pub fn openmls_generate_key_package(
     credential_with_key: &CredentialWithKey,
     config: &OpenMLSConfig,
 ) -> Vec<u8> {
+    let backend: MyOpenMlsRustCrypto = get_backend(config.db_path.clone(), config.crypto.clone());
+
     // Create the key package
     let key_package = KeyPackage::builder()
         .build(
             config.ciphersuite,
-            &config.backend,
+            &backend,
             signer,
             (*credential_with_key).clone(),
         )
@@ -178,8 +203,10 @@ pub fn openmls_group_create(
     credential_with_key: &CredentialWithKey,
     config: &OpenMLSConfig,
 ) -> RwLock<MlsGroup> {
+    let backend: MyOpenMlsRustCrypto = get_backend(config.db_path.clone(), config.crypto.clone());
+
     let group = MlsGroup::new(
-        &config.backend,
+        &backend,
         signer,
         &config.mls_group_create_config,
         (*credential_with_key).clone(),
@@ -205,17 +232,19 @@ pub fn openmls_group_add_member(
         Err(poisoned) => poisoned.into_inner(),
     };
 
+    let backend: MyOpenMlsRustCrypto = get_backend(config.db_path.clone(), config.crypto.clone());
+
     let kp = KeyPackageIn::tls_deserialize_exact(key_package.as_slice())
         .expect("Could not deserialize KeyPackage")
-        .validate(config.backend.crypto(), ProtocolVersion::Mls10)
+        .validate(backend.crypto(), ProtocolVersion::Mls10)
         .expect("Invalid KeyPackage");
 
     let (mls_message_out, welcome_out, _) = group_rw
-        .add_members(&config.backend, signer, &[kp])
+        .add_members(&backend, signer, &[kp])
         .expect("Could not add members.");
 
     group_rw
-        .merge_pending_commit(&config.backend)
+        .merge_pending_commit(&backend)
         .expect("error merging pending commit");
 
     let serialized_mls_message = mls_message_out
@@ -242,13 +271,15 @@ pub fn openmls_group_create_message(
     message: Vec<u8>,
     config: &OpenMLSConfig,
 ) -> Vec<u8> {
+    let backend: MyOpenMlsRustCrypto = get_backend(config.db_path.clone(), config.crypto.clone());
+
     let mut group_rw = match group.write() {
         Ok(guard) => guard,
         Err(poisoned) => poisoned.into_inner(),
     };
 
     let mls_message_out = group_rw
-        .create_message(&config.backend, signer, &message)
+        .create_message(&backend, signer, &message)
         .expect("Error creating application message.");
 
     mls_message_out
@@ -262,6 +293,7 @@ pub fn openmls_group_join(
     // ratchet_tree: Vec<u8>,
     config: &OpenMLSConfig,
 ) -> RwLock<MlsGroup> {
+    let backend: MyOpenMlsRustCrypto = get_backend(config.db_path.clone(), config.crypto.clone());
     // de-serialize the message as an [`MlsMessageIn`] ...
     let mls_message_in = MlsMessageIn::tls_deserialize_exact(welcome_in.as_slice())
         .expect("An unexpected error occurred.");
@@ -275,13 +307,13 @@ pub fn openmls_group_join(
 
     // join the group
     let group = StagedWelcome::new_from_welcome(
-        &config.backend,
+        &backend,
         config.mls_group_create_config.join_config(),
         welcome,
         None,
     )
     .expect("Failed to create staged join")
-    .into_group(&config.backend)
+    .into_group(&backend)
     .expect("Failed to create MlsGroup");
 
     RwLock::new(group)
@@ -294,13 +326,14 @@ pub fn openmls_group_export_group_info(
     signer: &SignatureKeyPair,
     config: &OpenMLSConfig,
 ) -> Vec<u8> {
+    let backend: MyOpenMlsRustCrypto = get_backend(config.db_path.clone(), config.crypto.clone());
     let group_ro = match group.read() {
         Ok(guard) => guard,
         Err(poisoned) => poisoned.into_inner(),
     };
 
     let mls_message_out: MlsMessageOut = group_ro
-        .export_group_info(&config.backend, signer, true) // `true` includes the ratchet tree extension
+        .export_group_info(backend.crypto.as_ref(), signer, true)
         .expect("Cannot export group info");
 
     let message_serialized: Vec<u8> = mls_message_out
@@ -319,6 +352,7 @@ pub fn openmls_group_join_by_external_commit(
     credential_with_key: &CredentialWithKey,
     config: &OpenMLSConfig,
 ) -> (RwLock<MlsGroup>, Vec<u8>) {
+    let backend: MyOpenMlsRustCrypto = get_backend(config.db_path.clone(), config.crypto.clone());
     // Deserialize the VerifiableGroupInfo received from the existing member
     let mls_message_in: MlsMessageIn =
         MlsMessageIn::tls_deserialize_exact(&verifiable_group_info_in)
@@ -334,7 +368,7 @@ pub fn openmls_group_join_by_external_commit(
     let join_config = config.mls_group_create_config.join_config();
 
     let (mut group, commit_message_out, _group_info) = MlsGroup::join_by_external_commit(
-        &config.backend,
+        &backend,
         signer,
         None,
         verifiable_group_info,
@@ -347,7 +381,7 @@ pub fn openmls_group_join_by_external_commit(
     .expect("Error joining group by external commit");
 
     group
-        .merge_pending_commit(&config.backend)
+        .merge_pending_commit(&backend)
         .expect("Error merging pending commit for new member");
 
     let commit_message_bytes = commit_message_out
@@ -370,6 +404,7 @@ pub fn openmls_group_process_incoming_message(
     mls_message_in: Vec<u8>,
     config: &OpenMLSConfig,
 ) -> ProcessIncomingMessageResponse {
+    let backend: MyOpenMlsRustCrypto = get_backend(config.db_path.clone(), config.crypto.clone());
     let message_in = MlsMessageIn::tls_deserialize_exact(&mut mls_message_in.as_slice())
         .expect("Could not deserialize message.");
 
@@ -384,7 +419,7 @@ pub fn openmls_group_process_incoming_message(
         _ => panic!("This is not an MLS message."),
     };
     let processed_message = group_rw
-        .process_message(&config.backend, protocol_message)
+        .process_message(&backend, protocol_message)
         .expect("Could not process unverified message.");
     let processed_message_credential: Credential = processed_message.credential().clone();
     let processed_message_sender = processed_message
@@ -412,7 +447,7 @@ pub fn openmls_group_process_incoming_message(
         ProcessedMessageContent::StagedCommitMessage(staged_commit) => {
             // This makes sure to load up the new commit if it comes in
             group_rw
-                .merge_staged_commit(&config.backend, *staged_commit)
+                .merge_staged_commit(&backend, *staged_commit)
                 .expect("failed to merge staged commit");
 
             return ProcessIncomingMessageResponse {
@@ -442,12 +477,14 @@ pub fn openmls_group_save(group: &RwLock<MlsGroup>, _config: &OpenMLSConfig) -> 
     group_rw.group_id().as_slice().to_vec()
 }
 
-pub fn openmls_group_load(id: Vec<u8>, config: &OpenMLSConfig) -> RwLock<MlsGroup> {
-    let group = MlsGroup::load(config.backend.storage(), &GroupId::from_slice(&id))
-        .unwrap()
-        .unwrap();
+pub fn openmls_group_load(id: Vec<u8>, config: &OpenMLSConfig) -> Result<RwLock<MlsGroup>> {
+    let backend: MyOpenMlsRustCrypto = get_backend(config.db_path.clone(), config.crypto.clone());
+    let group_option = MlsGroup::load(backend.storage(), &GroupId::from_slice(&id))
+        .map_err(|e| anyhow!("Failed to read group from storage: {}", e))?;
+    let group =
+        group_option.ok_or_else(|| anyhow!("Group with ID {:?} not found in database", id))?;
 
-    RwLock::new(group)
+    Ok(RwLock::new(group))
 }
 
 pub fn openmls_group_leave(
@@ -455,6 +492,7 @@ pub fn openmls_group_leave(
     signer: &SignatureKeyPair,
     config: &OpenMLSConfig,
 ) -> Vec<u8> {
+    let backend: MyOpenMlsRustCrypto = get_backend(config.db_path.clone(), config.crypto.clone());
     // Get a mutable reference to the group. We need this because `leave_group`
     // creates a proposal and thus modifies the internal group state.
     let mut group_rw = match group.write() {
@@ -465,7 +503,7 @@ pub fn openmls_group_leave(
     // Call the `leave_group` method. It takes the backend and a signer to
     // create and sign the leave proposal as a Commit message.
     let mls_message_out = group_rw
-        .leave_group(&config.backend, signer)
+        .leave_group(&backend, signer)
         .expect("Error creating leave group message");
 
     // Serialize the resulting MlsMessageOut to bytes so it can be sent

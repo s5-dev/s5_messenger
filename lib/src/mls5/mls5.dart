@@ -40,7 +40,8 @@ class S5Messenger {
 
   final RustLibApi rust = RustLib.instance.api;
 
-  Future<void> init(S5 inputS5, [String prefix = 'default']) async {
+  Future<void> init(S5 inputS5, String dbPath,
+      [String prefix = 'default']) async {
     logger = SimpleLogger(prefix: "[s5_messenger]");
     s5 = inputS5;
     dataBox = await Hive.openBox('s5-messenger-data');
@@ -60,10 +61,7 @@ class S5Messenger {
     keystoreBox = /*  HiveKeyValueDB( */ await Hive.openBox('$prefix-keystore');
     // groupStateDB = HiveKeyValueDB(await Hive.openBox('group_state'));
 
-    config = await rust.crateApiSimpleOpenmlsInitConfig(
-      keystoreDump:
-          (keystoreBox.get('dump')?.cast<int>() ?? <int>[]) as List<int>,
-    );
+    config = await rust.crateApiSimpleOpenmlsInitConfig(dbPath: dbPath);
     logger.info('Initialized Rust!');
 
     await setupIdentity();
@@ -93,43 +91,39 @@ class S5Messenger {
     return HiveKeyValueDB(await Hive.openBox<Uint8List>('s5-node-$key'));
   }
 
-  Future<void> saveKeyStore() async {
-    logger.info('saveKeyStore');
-    keystoreBox.put(
-      'dump',
-      await rust.crateApiSimpleOpenmlsKeystoreDump(config: config),
-    );
-  }
-
   late final MlsCredential identity;
 
   Future<void> setupIdentity() async {
     const key = 'identity_default';
     if (dataBox.containsKey(key)) {
-      final data = dataBox.get(key) as Map;
-      identity = await openmlsRecoverCredentialWithKey(
-        identity: utf8.encode(data['identity']),
-        publicKey: base64UrlNoPaddingDecode(data['publicKey']),
-        config: config,
-      );
-      logger.info('$key recovered');
-    } else {
-      final username = 'User #${Random().nextInt(1000)}';
-      identity = await openmlsGenerateCredentialWithKey(
-        identity: utf8.encode(username),
-        config: config,
-      );
-      final publicKey = await openmlsSignerGetPublicKey(
-        signer: identity.signer,
-      );
-
-      dataBox.put(key, {
-        'identity': username,
-        'publicKey': base64UrlNoPaddingEncode(publicKey),
-      });
-      print('$key created');
+      try {
+        final data = dataBox.get(key) as Map;
+        identity = await openmlsRecoverCredentialWithKey(
+          identity: utf8.encode(data['identity']),
+          publicKey: base64UrlNoPaddingDecode(data['publicKey']),
+          config: config,
+        );
+        logger.info('$key recovered');
+        return;
+      } catch (e) {
+        logger.error(e.toString());
+      }
     }
-    await saveKeyStore();
+    // if those fail, do this migraiton
+    final username = 'User #${Random().nextInt(1000)}';
+    identity = await openmlsGenerateCredentialWithKey(
+      identity: utf8.encode(username),
+      config: config,
+    );
+    final publicKey = await openmlsSignerGetPublicKey(
+      signer: identity.signer,
+    );
+
+    dataBox.put(key, {
+      'identity': username,
+      'publicKey': base64UrlNoPaddingEncode(publicKey),
+    });
+    print('$key created');
   }
 
   final groups = <String, GroupState>{};
@@ -145,7 +139,6 @@ class S5Messenger {
     final groupId = base64UrlNoPaddingEncode(
       await openmlsGroupSave(group: group, config: config),
     );
-    await saveKeyStore();
 
     GroupState newGroup = GroupState(
       groupId,
@@ -187,19 +180,22 @@ class S5Messenger {
 
   Future<void> recoverGroups() async {
     for (final id in groupsBox.keys) {
-      final group = await openmlsGroupLoad(
-        id: base64UrlNoPaddingDecode(id),
-        config: config,
-      );
-      groups[id] = GroupState(
-        id,
-        group: group,
-        channel: await deriveCommunicationChannelKeyPair(id),
-        mls: this,
-      );
-      groups[id]!.init();
+      try {
+        final group = await openmlsGroupLoad(
+          id: base64UrlNoPaddingDecode(id),
+          config: config,
+        );
+        groups[id] = GroupState(
+          id,
+          group: group,
+          channel: await deriveCommunicationChannelKeyPair(id),
+          mls: this,
+        );
+        groups[id]!.init();
+      } catch (e) {
+        logger.error(e.toString());
+      }
     }
-    await saveKeyStore();
   }
 
   Future<Uint8List> createKeyPackage() async {
@@ -208,7 +204,6 @@ class S5Messenger {
       credentialWithKey: identity.credentialWithKey,
       config: config,
     );
-    await saveKeyStore();
     return keyPackage;
   }
 
@@ -219,7 +214,6 @@ class S5Messenger {
     final groupId = base64UrlNoPaddingEncode(
       await openmlsGroupSave(group: group, config: config),
     );
-    await saveKeyStore();
 
     groups[groupId] = GroupState(
       groupId,
@@ -253,7 +247,6 @@ class S5Messenger {
     final String groupId = base64UrlNoPaddingEncode(
       await openmlsGroupSave(group: group, config: config),
     );
-    await saveKeyStore();
 
     groups[groupId] = GroupState(
       groupId,
@@ -323,7 +316,6 @@ class GroupState {
             mlsMessageIn: event.data,
             config: mls.config,
           );
-          await mls.saveKeyStore();
           if (res.isApplicationMessage) {
             logger.info('processed incoming message, epoch is ${res.epoch}');
 
@@ -411,17 +403,6 @@ class GroupState {
 
   Future<void> refreshGroupMemberList() async {
     members = await openmlsGroupListMembers(group: group);
-
-    // TODO This one is likely not needed
-    await mls.saveKeyStore();
-    /* try {
-      final selfHash= Multihash(mls.identity)
-      self = members.firstWhere((m) => Multihash(m.signatureKey)==);
-    } catch (e, st) {
-      // TODO Error handling
-      print(e);
-      print(st);
-    } */
     membersStateNotifier.update();
   }
 
@@ -432,14 +413,11 @@ class GroupState {
       keyPackage: keyPackage,
       config: mls.config,
     );
-    await mls.saveKeyStore();
 
     final int _ = await sendMessageToStreamChannel(res.mlsMessageOut);
     await openmlsGroupSave(group: group, config: mls.config);
 
     refreshGroupMemberList();
-
-    await mls.saveKeyStore();
 
     /*     return 's5messenger-group-invite:${base64UrlNoPaddingEncode(groupChannels[groupId]!.publicKey)}/$ts/${base64UrlNoPaddingEncode(res.welcomeOut)}'; */
     return 's5messenger-group-invite:${base64UrlNoPaddingEncode(res.welcomeOut)}';
@@ -468,7 +446,6 @@ class GroupState {
       config: mls.config,
     );
     final int ts = await sendMessageToStreamChannel(payload);
-    await mls.saveKeyStore();
 
     _processNewMessage(
       MLSApplicationMessage(

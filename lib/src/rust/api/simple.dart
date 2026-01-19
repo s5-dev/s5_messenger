@@ -4,19 +4,18 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import '../lib.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `MyOpenMlsRustCrypto`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `crypto`, `from_slice`, `rand`, `storage`, `to_vec`
+// These functions are ignored (category: IgnoreBecauseExplicitAttribute): `get_backend`
 
 String greet({required String name}) =>
     RustLib.instance.api.crateApiSimpleGreet(name: name);
 
-Future<OpenMlsConfig> openmlsInitConfig({required List<int> keystoreDump}) =>
-    RustLib.instance.api
-        .crateApiSimpleOpenmlsInitConfig(keystoreDump: keystoreDump);
-
-Future<Uint8List> openmlsKeystoreDump({required OpenMlsConfig config}) =>
-    RustLib.instance.api.crateApiSimpleOpenmlsKeystoreDump(config: config);
+Future<OpenMlsConfig> openmlsInitConfig({required String dbPath}) =>
+    RustLib.instance.api.crateApiSimpleOpenmlsInitConfig(dbPath: dbPath);
 
 Future<MlsCredential> openmlsGenerateCredentialWithKey(
         {required List<int> identity, required OpenMlsConfig config}) =>
@@ -114,6 +113,12 @@ Future<Uint8List> openmlsGroupLeave(
 Future<List<GroupMember>> openmlsGroupListMembers({required MlsGroup group}) =>
     RustLib.instance.api.crateApiSimpleOpenmlsGroupListMembers(group: group);
 
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<BinCodec>>
+abstract class BinCodec implements RustOpaqueInterface {
+  static Future<BinCodec> default_() =>
+      RustLib.instance.api.crateApiSimpleBinCodecDefault();
+}
+
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Ciphersuite>>
 abstract class Ciphersuite implements RustOpaqueInterface {}
 
@@ -137,35 +142,27 @@ abstract class MlsCredential implements RustOpaqueInterface {
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<MlsGroupCreateConfig>>
 abstract class MlsGroupCreateConfig implements RustOpaqueInterface {}
 
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<MyOpenMlsRustCrypto>>
-abstract class MyOpenMlsRustCrypto implements RustOpaqueInterface {
-  Future<void> crypto();
-
-  static Future<MyOpenMlsRustCrypto> default_() =>
-      RustLib.instance.api.crateApiSimpleMyOpenMlsRustCryptoDefault();
-
-  Future<void> rand();
-
-  Future<void> storage();
-}
-
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<OpenMLSConfig>>
 abstract class OpenMlsConfig implements RustOpaqueInterface {
-  MyOpenMlsRustCrypto get backend;
-
   Ciphersuite get ciphersuite;
 
   CredentialType get credentialType;
+
+  ArcRustCrypto get crypto;
+
+  String get dbPath;
 
   MlsGroupCreateConfig get mlsGroupCreateConfig;
 
   SignatureScheme get signatureAlgorithm;
 
-  set backend(MyOpenMlsRustCrypto backend);
-
   set ciphersuite(Ciphersuite ciphersuite);
 
   set credentialType(CredentialType credentialType);
+
+  set crypto(ArcRustCrypto crypto);
+
+  set dbPath(String dbPath);
 
   set mlsGroupCreateConfig(MlsGroupCreateConfig mlsGroupCreateConfig);
 

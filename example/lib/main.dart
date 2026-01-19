@@ -82,7 +82,10 @@ class _InitializationScreenState extends State<InitializationScreen> {
 
       // Initialize S5Messenger
       s5messenger = S5Messenger();
-      await s5messenger.init(s5);
+      await s5messenger.init(
+          s5,
+          path.join((await getApplicationSupportDirectory()).path,
+              "keystore.sqlite"));
       // await s5messenger.init(s5);
       setState(() => messengerInitialized = true);
 
