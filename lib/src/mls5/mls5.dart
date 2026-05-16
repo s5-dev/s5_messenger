@@ -300,43 +300,65 @@ class GroupState {
   }
 
   void listenForIncomingMessages() async {
-    // messagesTemp[groupId] = [];
+    int retryDelaySeconds = 1;
 
-    await for (final event in mls.s5.api.streamSubscribe(
-      channel.publicKey,
-      afterTimestamp: mls.groupCursorBox.get(groupId),
-    )) {
-      Logger logger = SimpleLogger(prefix: "[s5_messenger]");
-      logger.info('debug1 incoming $groupId ${event.ts}');
+    while (true) {
       try {
-        try {
-          final ProcessIncomingMessageResponse res =
-              await openmlsGroupProcessIncomingMessage(
-            group: group,
-            mlsMessageIn: event.data,
-            config: mls.config,
-          );
-          if (res.isApplicationMessage) {
-            logger.info('processed incoming message, epoch is ${res.epoch}');
+        await for (final event in mls.s5.api.streamSubscribe(
+          channel.publicKey,
+          afterTimestamp: mls.groupCursorBox.get(groupId),
+        ).timeout(const Duration(minutes: 5))) {
+          retryDelaySeconds = 1;
 
-            final MLSApplicationMessage msg =
-                MLSApplicationMessage.fromProcessIncomingMessageResponse(
-              res,
-              event.ts,
-            );
-            _processNewMessage(msg);
-          } else {
-            refreshGroupMemberList();
+          Logger logger = SimpleLogger(prefix: "[s5_messenger]");
+          logger.info('debug1 incoming $groupId ${event.ts}');
+          if (ignoreMessageIds.contains(event.ts)) {
+            ignoreMessageIds.remove(event.ts);
+            await mls.groupCursorBox.put(groupId, event.ts);
+            continue;
           }
-        } catch (e) {
-          logger.error("Failed to decrypt message");
-          logger.error(e.toString());
-        }
+          try {
+            try {
+              final ProcessIncomingMessageResponse res =
+                  await openmlsGroupProcessIncomingMessage(
+                group: group,
+                mlsMessageIn: event.data,
+                config: mls.config,
+              );
+              if (res.isApplicationMessage) {
+                logger.info('processed incoming message, epoch is ${res.epoch}');
 
-        await mls.groupCursorBox.put(groupId, event.ts);
+                final MLSApplicationMessage msg =
+                    MLSApplicationMessage.fromProcessIncomingMessageResponse(
+                  res,
+                  event.ts,
+                );
+                _processNewMessage(msg);
+              } else {
+                refreshGroupMemberList();
+              }
+            } catch (e) {
+              logger.error("Failed to decrypt message");
+              logger.error(e.toString());
+            }
+
+            await mls.groupCursorBox.put(groupId, event.ts);
+          } catch (e, st) {
+            logger.error(e.toString());
+            logger.error(st.toString());
+          }
+        }
       } catch (e, st) {
-        logger.error(e.toString());
-        logger.error(st.toString());
+        if (e is TimeoutException) {
+          mls.logger.warn('Stream timed out for $groupId, reconnecting...');
+        } else {
+          mls.logger.error('Stream error for $groupId: $e');
+        }
+      }
+
+      await Future.delayed(Duration(seconds: retryDelaySeconds));
+      if (retryDelaySeconds < 30) {
+        retryDelaySeconds *= 2;
       }
     }
   }
