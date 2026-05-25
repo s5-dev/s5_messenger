@@ -14,8 +14,7 @@ class TestSetup {
     mockS5 = MockS5();
     messenger = S5Messenger();
     await messenger.init(mockS5, tempDir.path);
-    // Wait for recoverGroups (1s delay in lib)
-    await Future.delayed(Duration(milliseconds: 1100));
+    // Reset subscription count after init
     mockS5.mockApi.subscriptionCount = 0;
   }
 

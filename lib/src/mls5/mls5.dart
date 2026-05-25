@@ -5,10 +5,13 @@ import 'dart:typed_data';
 
 import 'package:lib5/src/util/big_endian.dart';
 import 'package:lib5/util.dart';
+// ignore: implementation_imports
+import 'package:lib5/src/node/logger/base.dart';
 import 'package:ntp/ntp.dart';
 import 'package:s5/s5.dart';
 import 'package:s5/src/hive_key_value_db.dart';
 import 'package:s5_messenger/src/mls5/state/messenger.dart';
+import 'package:s5_messenger/src/mls5/util/logger.dart';
 import 'package:s5_messenger/src/rust/api/simple.dart';
 import 'package:s5_messenger/src/rust/frb_generated.dart';
 import 'package:hive_ce/hive.dart';
@@ -42,7 +45,7 @@ class S5Messenger {
 
   Future<void> init(S5 inputS5, String dbPath,
       [String prefix = 'default']) async {
-    logger = SimpleLogger(prefix: "[s5_messenger]");
+    logger = S5MessengerLogger(prefix: "[s5_messenger]");
     s5 = inputS5;
     dataBox = await Hive.openBox('s5-messenger-data');
     groupsBox = await Hive.openBox('s5-messenger-groups');
@@ -61,22 +64,34 @@ class S5Messenger {
     keystoreBox = /*  HiveKeyValueDB( */ await Hive.openBox('$prefix-keystore');
     // groupStateDB = HiveKeyValueDB(await Hive.openBox('group_state'));
 
+    initLogging().listen((entry) {
+      final rustLogger = S5MessengerLogger(prefix: "[s5_messenger:rust]");
+      final msg = "${entry.tag}: ${entry.msg}";
+      if (entry.level <= 1) {
+        rustLogger.error(msg);
+      } else if (entry.level == 2) {
+        rustLogger.warn(msg);
+      } else {
+        rustLogger.info(msg);
+      }
+    });
+
     config = await rust.crateApiSimpleOpenmlsInitConfig(dbPath: dbPath);
     logger.info('Initialized Rust!');
 
     await setupIdentity();
 
-    Future.delayed(Duration(seconds: 1)).then((value) async {
-      await recoverGroups();
-      messengerState.update();
+    await _setupTimeSync().timeout(const Duration(seconds: 2), onTimeout: () {
+      logger.warn('NTP time sync timed out, using system clock.');
     });
 
-    _setupTimeSync();
+    await recoverGroups();
+    messengerState.update();
   }
 
   Duration timeOffset = Duration.zero;
 
-  void _setupTimeSync() async {
+  Future<void> _setupTimeSync() async {
     try {
       int offsetMillis = await NTP.getNtpOffset(localTime: DateTime.now());
       timeOffset = Duration(milliseconds: offsetMillis);
@@ -123,7 +138,7 @@ class S5Messenger {
       'identity': username,
       'publicKey': base64UrlNoPaddingEncode(publicKey),
     });
-    print('$key created');
+    logger.info('$key created');
   }
 
   final groups = <String, GroupState>{};
@@ -310,7 +325,7 @@ class GroupState {
         ).timeout(const Duration(minutes: 5))) {
           retryDelaySeconds = 1;
 
-          Logger logger = SimpleLogger(prefix: "[s5_messenger]");
+          Logger logger = S5MessengerLogger(prefix: "[s5_messenger]");
           logger.info('debug1 incoming $groupId ${event.ts}');
           if (ignoreMessageIds.contains(event.ts)) {
             ignoreMessageIds.remove(event.ts);
@@ -363,14 +378,22 @@ class GroupState {
     }
   }
 
+  bool canLoadMore = true;
+  List<MLSApplicationMessage> messagesMemory = <MLSApplicationMessage>[];
+
   void _processNewMessage(MLSApplicationMessage msg) {
-    messagesMemory.insert(0, msg);
+    if (messagesMemory.any((m) => m.ts == msg.ts)) {
+      return;
+    }
+    final newMessages = List<MLSApplicationMessage>.from(messagesMemory);
+    newMessages.add(msg);
+    newMessages.sort((a, b) => b.ts.compareTo(a.ts));
+
+    messagesMemory = newMessages;
+
     mls.messageStoreBox.put(makeKey(msg), msg.serialize());
     messageListStateNotifier.update();
   }
-
-  bool canLoadMore = true;
-  final messagesMemory = <MLSApplicationMessage>[];
 
   void loadMoreMessages() {
     final anchorLow = String.fromCharCodes(base64UrlNoPaddingDecode(groupId));
@@ -383,13 +406,14 @@ class GroupState {
     keys.sort((a, b) => b.compareTo(a));
     // print(keys);
 
-    if (keys.length < 50) {
+    if (keys.length <= 50) {
       canLoadMore = false;
     } else {
       keys.removeRange(50, keys.length);
     }
+    final newMessages = List<MLSApplicationMessage>.from(messagesMemory);
     for (final String k in keys) {
-      messagesMemory.add(
+      newMessages.add(
         MLSApplicationMessage.deserialize(
           mls.messageStoreBox.get(k)!,
           decodeEndian(
@@ -398,8 +422,7 @@ class GroupState {
         ),
       );
     }
-    /*  if (keys.isEmpty) {
-    } */
+    messagesMemory = newMessages;
 
     messageListStateNotifier.update();
   }

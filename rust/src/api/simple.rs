@@ -1,3 +1,4 @@
+use crate::frb_generated::StreamSink;
 use anyhow::{anyhow, Result};
 use flutter_rust_bridge::frb;
 use openmls::prelude::tls_codec::{Deserialize, Serialize};
@@ -8,7 +9,36 @@ use openmls_sqlite_storage::SqliteStorageProvider;
 use rusqlite::Connection;
 pub use std::borrow::Borrow;
 pub use std::sync::RwLock;
-use std::{any, sync::Arc};
+use std::sync::Arc;
+
+pub struct LogEntry {
+    pub level: i32,
+    pub tag: String,
+    pub msg: String,
+}
+
+struct DartLogger {
+    sink: StreamSink<LogEntry>,
+}
+
+impl log::Log for DartLogger {
+    fn enabled(&self, _metadata: &log::Metadata) -> bool {
+        true
+    }
+    fn log(&self, record: &log::Record) {
+        let _ = self.sink.add(LogEntry {
+            level: record.level() as i32,
+            tag: record.target().to_string(),
+            msg: record.args().to_string(),
+        });
+    }
+    fn flush(&self) {}
+}
+
+pub fn init_logging(sink: StreamSink<LogEntry>) {
+    let _ = log::set_boxed_logger(Box::new(DartLogger { sink }));
+    log::set_max_level(log::LevelFilter::Debug);
+}
 
 // TODO: Move away from sync bridge
 #[flutter_rust_bridge::frb(sync)]
@@ -367,22 +397,23 @@ pub fn openmls_group_join_by_external_commit(
 
     let join_config = config.mls_group_create_config.join_config();
 
-    let (mut group, commit_message_out, _group_info) = MlsGroup::join_by_external_commit(
-        &backend,
-        signer,
-        None,
-        verifiable_group_info,
-        join_config,
-        None,
-        None,
-        &[],
-        credential_with_key.clone(),
-    )
-    .expect("Error joining group by external commit");
+    let (group, commit_message_bundle) = MlsGroup::external_commit_builder()
+        .with_config(join_config.clone())
+        .build_group(&backend, verifiable_group_info, credential_with_key.clone())
+        .expect("Failed to initialize group from info")
+        .load_psks(backend.storage())
+        .expect("Failed to load PSKs")
+        .build(
+            backend.rand(),
+            backend.crypto(),
+            signer,
+            |_| true,
+        )
+        .expect("Failed to build external commit")
+        .finalize(&backend)
+        .expect("Error joining from external commit");
 
-    group
-        .merge_pending_commit(&backend)
-        .expect("Error merging pending commit for new member");
+    let (commit_message_out, _welcome, _group_info) = commit_message_bundle.into_contents();
 
     let commit_message_bytes = commit_message_out
         .tls_serialize_detached()

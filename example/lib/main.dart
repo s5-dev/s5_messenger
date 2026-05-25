@@ -62,6 +62,7 @@ class _InitializationScreenState extends State<InitializationScreen> {
     try {
       final dir =
           await getApplicationSupportDirectory(); // Best for persistent data
+      logger.info("s5_messenger persisting @$dir");
       Hive.init(dir.path);
       // Initialize Hive
       setState(() => hiveInitialized = true);

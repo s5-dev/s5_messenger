@@ -19,43 +19,50 @@ void main() {
 
   test('Reconnection Test - Stream Drop', () async {
     final group = await t.messenger.createNewGroup('Recon Group');
+    await t.mockS5.mockApi.nextSubscription; // Wait for initial sub
     expect(t.mockS5.mockApi.subscriptionCount, 1);
-    
+
     t.mockS5.mockApi.close();
-    await Future.delayed(Duration(milliseconds: 100));
+
+    // Wait for the next subscription to happen (after 1s retry delay)
+    await t.mockS5.mockApi.nextSubscription.timeout(const Duration(seconds: 2));
 
     await group.sendMessage('Message after drop', null, 'sender', 'msg-drop');
-    await Future.delayed(Duration(milliseconds: 100));
-    
+    await Future.delayed(const Duration(milliseconds: 100));
+
     expect(t.mockS5.mockApi.subscriptionCount, greaterThan(1), reason: 'Should have re-subscribed after closure');
   });
 
   test('Reconnection Test - Stream Error', () async {
     final group = await t.messenger.createNewGroup('Error Recon Group');
+    await t.mockS5.mockApi.nextSubscription; // Wait for initial sub
     expect(t.mockS5.mockApi.subscriptionCount, 1);
-    
+
     t.mockS5.mockApi.addError(Exception('Network Error'));
-    await Future.delayed(Duration(milliseconds: 100));
+
+    // Wait for reconnection
+    await t.mockS5.mockApi.nextSubscription.timeout(const Duration(seconds: 2));
 
     await group.sendMessage('Message after error', null, 'sender', 'msg-err');
-    await Future.delayed(Duration(milliseconds: 100));
-    
+    await Future.delayed(const Duration(milliseconds: 100));
+
     expect(t.mockS5.mockApi.subscriptionCount, greaterThan(1), reason: 'Should have re-subscribed after error');
   });
 
   test('Reconnection Test - Intermittent Drops', () async {
     final group = await t.messenger.createNewGroup('Choppy Group');
-    
-    for (int i = 0; i < 5; i++) {
+    await t.mockS5.mockApi.nextSubscription;
+
+    for (int i = 0; i < 3; i++) {
         t.mockS5.mockApi.close();
-        await Future.delayed(Duration(milliseconds: 50));
+        await t.mockS5.mockApi.nextSubscription.timeout(const Duration(seconds: 2));
         await group.sendMessage('Choppy $i', null, 'sender', 'c$i');
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
     }
-    
-    await Future.delayed(Duration(milliseconds: 500));
-    expect(t.mockS5.mockApi.subscriptionCount, greaterThan(1));
+
+    expect(t.mockS5.mockApi.subscriptionCount, greaterThan(3));
   });
+
 
   test('Node Sleep/Wake Simulation', () async {
     final group = await t.messenger.createNewGroup('Sleep Group');

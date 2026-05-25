@@ -7,9 +7,12 @@ import '../frb_generated.dart';
 import '../lib.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `MyOpenMlsRustCrypto`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `crypto`, `from_slice`, `rand`, `storage`, `to_vec`
+// These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `DartLogger`, `MyOpenMlsRustCrypto`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `crypto`, `enabled`, `flush`, `from_slice`, `log`, `rand`, `storage`, `to_vec`
 // These functions are ignored (category: IgnoreBecauseExplicitAttribute): `get_backend`
+
+Stream<LogEntry> initLogging() =>
+    RustLib.instance.api.crateApiSimpleInitLogging();
 
 String greet({required String name}) =>
     RustLib.instance.api.crateApiSimpleGreet(name: name);
@@ -201,6 +204,30 @@ class GroupMember {
           identity == other.identity &&
           index == other.index &&
           signatureKey == other.signatureKey;
+}
+
+class LogEntry {
+  final int level;
+  final String tag;
+  final String msg;
+
+  const LogEntry({
+    required this.level,
+    required this.tag,
+    required this.msg,
+  });
+
+  @override
+  int get hashCode => level.hashCode ^ tag.hashCode ^ msg.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LogEntry &&
+          runtimeType == other.runtimeType &&
+          level == other.level &&
+          tag == other.tag &&
+          msg == other.msg;
 }
 
 class MLSGroupAddMembersResponse {

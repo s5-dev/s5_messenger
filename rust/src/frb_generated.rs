@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.11.1";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1008715301;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -216872058;
 
 // Section: executor
 
@@ -913,6 +913,44 @@ fn wire__crate__api__simple__init_app_impl(
                 transform_result_sse::<_, ()>((move || {
                     let output_ok = Result::<_, ()>::Ok({
                         crate::api::simple::init_app();
+                    })?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
+fn wire__crate__api__simple__init_logging_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "init_logging",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_sink = <StreamSink<
+                crate::api::simple::LogEntry,
+                flutter_rust_bridge::for_generated::SseCodec,
+            >>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, ()>((move || {
+                    let output_ok = Result::<_, ()>::Ok({
+                        crate::api::simple::init_logging(api_sink);
                     })?;
                     Ok(output_ok)
                 })())
@@ -2233,6 +2271,16 @@ impl SseDecode
     }
 }
 
+impl SseDecode
+    for StreamSink<crate::api::simple::LogEntry, flutter_rust_bridge::for_generated::SseCodec>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <String>::sse_decode(deserializer);
+        return StreamSink::deserialize(inner);
+    }
+}
+
 impl SseDecode for String {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2262,6 +2310,13 @@ impl SseDecode for crate::api::simple::GroupMember {
     }
 }
 
+impl SseDecode for i32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_i32::<NativeEndian>().unwrap()
+    }
+}
+
 impl SseDecode for Vec<crate::api::simple::GroupMember> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2283,6 +2338,20 @@ impl SseDecode for Vec<u8> {
             ans_.push(<u8>::sse_decode(deserializer));
         }
         return ans_;
+    }
+}
+
+impl SseDecode for crate::api::simple::LogEntry {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_level = <i32>::sse_decode(deserializer);
+        let mut var_tag = <String>::sse_decode(deserializer);
+        let mut var_msg = <String>::sse_decode(deserializer);
+        return crate::api::simple::LogEntry {
+            level: var_level,
+            tag: var_tag,
+            msg: var_msg,
+        };
     }
 }
 
@@ -2358,13 +2427,6 @@ impl SseDecode for usize {
     }
 }
 
-impl SseDecode for i32 {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        deserializer.cursor.read_i32::<NativeEndian>().unwrap()
-    }
-}
-
 fn pde_ffi_dispatcher_primary_impl(
     func_id: i32,
     port: flutter_rust_bridge::for_generated::MessagePort,
@@ -2376,69 +2438,70 @@ fn pde_ffi_dispatcher_primary_impl(
     match func_id {
         1 => wire__crate__api__simple__BinCodec_default_impl(port, ptr, rust_vec_len, data_len),
         19 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__simple__openmls_generate_credential_with_key_impl(
+        20 => wire__crate__api__simple__init_logging_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__simple__openmls_generate_credential_with_key_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        21 => wire__crate__api__simple__openmls_generate_key_package_impl(
+        22 => wire__crate__api__simple__openmls_generate_key_package_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        22 => wire__crate__api__simple__openmls_group_add_member_impl(
+        23 => wire__crate__api__simple__openmls_group_add_member_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        23 => {
+        24 => {
             wire__crate__api__simple__openmls_group_create_impl(port, ptr, rust_vec_len, data_len)
         }
-        24 => wire__crate__api__simple__openmls_group_create_message_impl(
+        25 => wire__crate__api__simple__openmls_group_create_message_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        25 => wire__crate__api__simple__openmls_group_export_group_info_impl(
+        26 => wire__crate__api__simple__openmls_group_export_group_info_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        26 => wire__crate__api__simple__openmls_group_join_impl(port, ptr, rust_vec_len, data_len),
-        27 => wire__crate__api__simple__openmls_group_join_by_external_commit_impl(
+        27 => wire__crate__api__simple__openmls_group_join_impl(port, ptr, rust_vec_len, data_len),
+        28 => wire__crate__api__simple__openmls_group_join_by_external_commit_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        28 => wire__crate__api__simple__openmls_group_leave_impl(port, ptr, rust_vec_len, data_len),
-        29 => wire__crate__api__simple__openmls_group_list_members_impl(
+        29 => wire__crate__api__simple__openmls_group_leave_impl(port, ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__simple__openmls_group_list_members_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        30 => wire__crate__api__simple__openmls_group_load_impl(port, ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__simple__openmls_group_process_incoming_message_impl(
+        31 => wire__crate__api__simple__openmls_group_load_impl(port, ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__simple__openmls_group_process_incoming_message_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        32 => wire__crate__api__simple__openmls_group_save_impl(port, ptr, rust_vec_len, data_len),
-        33 => wire__crate__api__simple__openmls_init_config_impl(port, ptr, rust_vec_len, data_len),
-        34 => wire__crate__api__simple__openmls_recover_credential_with_key_impl(
+        33 => wire__crate__api__simple__openmls_group_save_impl(port, ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__simple__openmls_init_config_impl(port, ptr, rust_vec_len, data_len),
+        35 => wire__crate__api__simple__openmls_recover_credential_with_key_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        35 => wire__crate__api__simple__openmls_signer_get_public_key_impl(
+        36 => wire__crate__api__simple__openmls_signer_get_public_key_impl(
             port,
             ptr,
             rust_vec_len,
@@ -2738,6 +2801,25 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::simple::GroupMember>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::simple::LogEntry {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.level.into_into_dart().into_dart(),
+            self.tag.into_into_dart().into_dart(),
+            self.msg.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::api::simple::LogEntry {}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::simple::LogEntry>
+    for crate::api::simple::LogEntry
+{
+    fn into_into_dart(self) -> crate::api::simple::LogEntry {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::simple::MLSGroupAddMembersResponse {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -2993,6 +3075,15 @@ impl SseEncode
     }
 }
 
+impl SseEncode
+    for StreamSink<crate::api::simple::LogEntry, flutter_rust_bridge::for_generated::SseCodec>
+{
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        unimplemented!("")
+    }
+}
+
 impl SseEncode for String {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -3016,6 +3107,13 @@ impl SseEncode for crate::api::simple::GroupMember {
     }
 }
 
+impl SseEncode for i32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_i32::<NativeEndian>(self).unwrap();
+    }
+}
+
 impl SseEncode for Vec<crate::api::simple::GroupMember> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -3033,6 +3131,15 @@ impl SseEncode for Vec<u8> {
         for item in self {
             <u8>::sse_encode(item, serializer);
         }
+    }
+}
+
+impl SseEncode for crate::api::simple::LogEntry {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.level, serializer);
+        <String>::sse_encode(self.tag, serializer);
+        <String>::sse_encode(self.msg, serializer);
     }
 }
 
@@ -3096,13 +3203,6 @@ impl SseEncode for usize {
             .cursor
             .write_u64::<NativeEndian>(self as _)
             .unwrap();
-    }
-}
-
-impl SseEncode for i32 {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        serializer.cursor.write_i32::<NativeEndian>(self).unwrap();
     }
 }
 
